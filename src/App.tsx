@@ -6,6 +6,7 @@
   FileText,
   Flag,
   FolderOpen,
+  HardDrive,
   MicOff,
   MonitorX,
   Palette,
@@ -1704,6 +1705,13 @@ function App() {
                 ? "Choose how this window should start, then pick the operator name for the note log."
                 : "Pick or enter the operator name that should appear on every note."}
             </p>
+            <div className="local-storage-note">
+              <HardDrive size={18} />
+              <span>
+                Productions, saved names, quick buttons, and design choices stay in this browser on this device only.
+                They are not synced, uploaded, or reachable from other devices.
+              </span>
+            </div>
             {startupMode === "choose" ? (
               <div className="startup-mode-grid">
                 <button className="startup-choice" onClick={() => setStartupMode("new")}>
@@ -1906,6 +1914,9 @@ function App() {
                     ))}
                   </div>
                 </div>
+                <p className="design-menu-note">
+                  Theme, font, mode, and color choices are saved only in this browser on this device.
+                </p>
               </div>
             ) : null}
           </div>
@@ -2259,6 +2270,13 @@ function App() {
                   <FileSpreadsheet size={16} />
                   CSV
                 </button>
+              </div>
+              <div className="local-storage-note export-storage-note">
+                <HardDrive size={18} />
+                <span>
+                  Stored productions and names live only in this device's browser storage. Other users and devices cannot
+                  access them from Studio Super; exports are the only files you create.
+                </span>
               </div>
               <div className="v4-export-fields">
                 <label>

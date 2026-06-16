@@ -5898,6 +5898,54 @@ textarea:focus {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+/* Device-local storage notices. */
+.local-storage-note,
+.design-menu-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 0;
+  padding: 10px 11px;
+  border: 1px solid color-mix(in srgb, var(--amber) 34%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--amber) 10%, transparent);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: left;
+  text-transform: none;
+}
+
+.local-storage-note svg {
+  flex: 0 0 auto;
+  color: var(--amber);
+}
+
+.operator-panel .local-storage-note {
+  text-align: left;
+}
+
+.export-storage-note {
+  margin-bottom: 2px;
+}
+
+.design-menu-note {
+  display: block;
+  color: var(--muted);
+}
+
+html[data-theme][data-mode] .local-storage-note,
+html[data-theme][data-mode] .design-menu-note {
+  border-color: color-mix(in srgb, var(--accent-2-live) 34%, transparent);
+  background: color-mix(in srgb, var(--accent-2-live) 10%, transparent);
+  color: var(--muted) !important;
+}
+
+html[data-theme][data-mode] .local-storage-note svg {
+  color: var(--accent-2-live);
+}
+
 /* v10 eof recording lock: final cascade guard for recording state. */
 html[data-theme][data-mode] .v4-shell .timer-step-record-recording {
   border-color: color-mix(in srgb, var(--theme-red) 88%, #ffffff) !important;
