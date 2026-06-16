@@ -8,6 +8,7 @@
   FolderOpen,
   MicOff,
   MonitorX,
+  Palette,
   PauseCircle,
   PlayCircle,
   Plus,
@@ -83,6 +84,9 @@ const pacificTimeZone = "America/Los_Angeles";
 const quickButtonsKey = "studio-super:quick-buttons:v9";
 const timeZoneKey = "studio-super:selected-time-zone:v9";
 const fontChoiceKey = "studio-super:font-choice:v9";
+const themeChoiceKey = "studio-super:theme-choice:v10";
+const modeChoiceKey = "studio-super:mode-choice:v10";
+const accentChoiceKey = "studio-super:accent-choice:v10";
 const retiredQuickButtonIds = new Set(["record-start"]);
 
 const timeZoneOptions = [
@@ -100,10 +104,114 @@ type MobilePanel = "buttons" | "timeline";
 const fontChoices = [
   { label: "Modern", value: "modern" },
   { label: "Classic", value: "classic" },
-  { label: "Mono", value: "mono" }
+  { label: "Mono", value: "mono" },
+  { label: "Editorial", value: "editorial" },
+  { label: "Wide", value: "wide" }
 ] as const;
 
 type FontChoice = (typeof fontChoices)[number]["value"];
+
+const modeChoices = [
+  { label: "Dark", value: "dark" },
+  { label: "Light", value: "light" }
+] as const;
+
+type ModeChoice = (typeof modeChoices)[number]["value"];
+
+const accentChoices = [
+  { label: "Theme", value: "theme", swatch: "#e4002b" },
+  { label: "Teal", value: "teal", swatch: "#00f5d4" },
+  { label: "Gold", value: "gold", swatch: "#ffc600" },
+  { label: "Crimson", value: "crimson", swatch: "#e4002b" },
+  { label: "Violet", value: "violet", swatch: "#9b5cff" }
+] as const;
+
+type AccentChoice = (typeof accentChoices)[number]["value"];
+
+const themeChoices = [
+  {
+    label: "Studio Super",
+    value: "studio-super",
+    summary: "black, signal red, studio gold",
+    defaultMode: "dark",
+    defaultFont: "modern",
+    swatches: ["#020202", "#e4002b", "#ffc600"]
+  },
+  {
+    label: "Cyberpunk",
+    value: "cyberpunk",
+    summary: "electric yellow, teal, hot magenta",
+    defaultMode: "dark",
+    defaultFont: "wide",
+    swatches: ["#05020d", "#faff00", "#00f5d4"]
+  },
+  {
+    label: "Crimson Crown",
+    value: "crimson-crown",
+    summary: "royal red, burnished gold, deep wine",
+    defaultMode: "dark",
+    defaultFont: "classic",
+    swatches: ["#100104", "#b11226", "#f1c453"]
+  },
+  {
+    label: "Aurora Glass",
+    value: "aurora-glass",
+    summary: "glacial cyan, violet, soft green",
+    defaultMode: "dark",
+    defaultFont: "modern",
+    swatches: ["#061113", "#76e4f7", "#b985ff"]
+  },
+  {
+    label: "Polar Slate",
+    value: "polar-slate",
+    summary: "clean slate, ice blue, graphite",
+    defaultMode: "light",
+    defaultFont: "modern",
+    swatches: ["#f4f8fb", "#2563eb", "#0f172a"]
+  },
+  {
+    label: "Solar Cream",
+    value: "solar-cream",
+    summary: "warm paper, navy ink, amber",
+    defaultMode: "light",
+    defaultFont: "editorial",
+    swatches: ["#fbf2db", "#19324a", "#e0a100"]
+  },
+  {
+    label: "Graphite Lime",
+    value: "graphite-lime",
+    summary: "charcoal, laser lime, mint",
+    defaultMode: "dark",
+    defaultFont: "mono",
+    swatches: ["#050807", "#b8ff36", "#00d8a7"]
+  },
+  {
+    label: "Royal Amethyst",
+    value: "royal-amethyst",
+    summary: "deep violet, champagne, ink",
+    defaultMode: "dark",
+    defaultFont: "classic",
+    swatches: ["#10061d", "#8b5cf6", "#f5c76a"]
+  },
+  {
+    label: "Oceanic Coral",
+    value: "oceanic-coral",
+    summary: "navy depth, clean cyan, coral",
+    defaultMode: "dark",
+    defaultFont: "modern",
+    swatches: ["#03111f", "#00a8e8", "#ff6f61"]
+  },
+  {
+    label: "Rose Noir",
+    value: "rose-noir",
+    summary: "black cherry, rose, champagne",
+    defaultMode: "dark",
+    defaultFont: "editorial",
+    swatches: ["#090407", "#ff4d8d", "#f7d9c4"]
+  }
+] as const;
+
+type ThemeChoice = (typeof themeChoices)[number]["value"];
 
 interface StoredEventButton {
   id: string;
@@ -196,11 +304,25 @@ function loadSelectedTimeZone(): TimeZoneValue {
     : "America/Los_Angeles";
 }
 
+function loadStoredChoice<T extends string>(key: string, choices: readonly { value: T }[], fallback: T): T {
+  const saved = localStorage.getItem(key);
+  return choices.some((choice) => choice.value === saved) ? (saved as T) : fallback;
+}
+
 function loadFontChoice(): FontChoice {
-  const saved = localStorage.getItem(fontChoiceKey);
-  return fontChoices.some((choice) => choice.value === saved)
-    ? (saved as FontChoice)
-    : "modern";
+  return loadStoredChoice(fontChoiceKey, fontChoices, "modern");
+}
+
+function loadThemeChoice(): ThemeChoice {
+  return loadStoredChoice(themeChoiceKey, themeChoices, "studio-super");
+}
+
+function loadModeChoice(): ModeChoice {
+  return loadStoredChoice(modeChoiceKey, modeChoices, "dark");
+}
+
+function loadAccentChoice(): AccentChoice {
+  return loadStoredChoice(accentChoiceKey, accentChoices, "theme");
 }
 
 function padTimePart(value: number) {
@@ -550,6 +672,10 @@ function App() {
   const [activeTab, setActiveTab] = useState<DashboardTab>("log");
   const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZoneValue>(() => loadSelectedTimeZone());
   const [fontChoice, setFontChoice] = useState<FontChoice>(() => loadFontChoice());
+  const [themeChoice, setThemeChoice] = useState<ThemeChoice>(() => loadThemeChoice());
+  const [modeChoice, setModeChoice] = useState<ModeChoice>(() => loadModeChoice());
+  const [accentChoice, setAccentChoice] = useState<AccentChoice>(() => loadAccentChoice());
+  const [designMenuOpen, setDesignMenuOpen] = useState(false);
   const [quickButtons, setQuickButtons] = useState<EventButton[]>(() => loadQuickButtons());
   const [newQuickButtonLabel, setNewQuickButtonLabel] = useState("");
   const [newQuickButtonGroup, setNewQuickButtonGroup] = useState<QuickButtonGroup>("event");
@@ -562,6 +688,7 @@ function App() {
   const broadcastRef = useRef<BroadcastChannel | null>(null);
   const suppressBroadcastRef = useRef(false);
   const localSessionOverrideRef = useRef(false);
+  const designMenuRef = useRef<HTMLDivElement | null>(null);
   const activeCodeRef = useRef(activeCode);
   const productionsRef = useRef(productions);
   activeCodeRef.current = activeCode;
@@ -570,6 +697,7 @@ function App() {
   const activeCodeExists = productions.some((production) => production.code === activeCode);
   const activeProduction = productions.find((production) => production.code === activeCode) || productions[0];
   const activeShortName = activeProduction?.shortName || activeProduction?.code || starterCode;
+  const activeDesignTheme = themeChoices.find((theme) => theme.value === themeChoice) || themeChoices[0];
   const manualExportNotes = useMemo(
     () => {
       if (!activeProduction) {
@@ -609,6 +737,14 @@ function App() {
     ? targetMinuteOptions
     : [...targetMinuteOptions, targetTimer.targetMinutes].sort((a, b) => a - b);
 
+  function applyThemePreset(nextTheme: ThemeChoice) {
+    const preset = themeChoices.find((theme) => theme.value === nextTheme) || themeChoices[0];
+    setThemeChoice(preset.value);
+    setModeChoice(preset.defaultMode);
+    setFontChoice(preset.defaultFont);
+    setAccentChoice("theme");
+  }
+
   useEffect(() => {
     const timer = window.setInterval(() => setNowIso(nowUtcIso()), 1000);
     return () => window.clearInterval(timer);
@@ -626,6 +762,43 @@ function App() {
     localStorage.setItem(fontChoiceKey, fontChoice);
     document.documentElement.dataset.font = fontChoice;
   }, [fontChoice]);
+
+  useEffect(() => {
+    localStorage.setItem(themeChoiceKey, themeChoice);
+    localStorage.setItem(modeChoiceKey, modeChoice);
+    localStorage.setItem(accentChoiceKey, accentChoice);
+    document.documentElement.dataset.theme = themeChoice;
+    document.documentElement.dataset.mode = modeChoice;
+    document.documentElement.dataset.accent = accentChoice;
+  }, [accentChoice, modeChoice, themeChoice]);
+
+  useEffect(() => {
+    if (!designMenuOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent | TouchEvent) {
+      const target = event.target;
+      if (target instanceof Node && designMenuRef.current && !designMenuRef.current.contains(target)) {
+        setDesignMenuOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setDesignMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [designMenuOpen]);
 
   useEffect(() => {
     setProductions((current) => {
@@ -1603,7 +1776,7 @@ function App() {
         <div className="v4-brand">
           <div>
             <p>{activeShortName}</p>
-            <strong>v9 Logging Dashboard</strong>
+            <strong>Studio Super</strong>
           </div>
         </div>
         <div className="v4-title-block">
@@ -1635,17 +1808,107 @@ function App() {
             <RotateCcw size={16} />
             Restart
           </button>
-          <label className="font-option-field">
-            <Settings size={15} />
-            <span>Font</span>
-            <select value={fontChoice} onChange={(event) => setFontChoice(event.target.value as FontChoice)}>
-              {fontChoices.map((choice) => (
-                <option key={choice.value} value={choice.value}>
-                  {choice.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="design-menu" ref={designMenuRef}>
+            <button
+              className={`design-menu-trigger ${designMenuOpen ? "active" : ""}`}
+              type="button"
+              onClick={() => setDesignMenuOpen((open) => !open)}
+              aria-haspopup="menu"
+              aria-expanded={designMenuOpen}
+              title="Design settings"
+            >
+              <Palette size={16} />
+              <span>Design</span>
+              <small>{activeDesignTheme.label}</small>
+            </button>
+            {designMenuOpen ? (
+              <div className="design-menu-panel" role="menu" aria-label="Design settings">
+                <div className="design-menu-head">
+                  <div>
+                    <span>Design</span>
+                    <strong>{activeDesignTheme.label}</strong>
+                  </div>
+                  <button type="button" onClick={() => setDesignMenuOpen(false)}>
+                    Done
+                  </button>
+                </div>
+
+                <div className="design-section">
+                  <span className="design-section-label">Theme</span>
+                  <div className="theme-preset-grid">
+                    {themeChoices.map((theme) => (
+                      <button
+                        key={theme.value}
+                        type="button"
+                        className={`theme-preset-button ${themeChoice === theme.value ? "active" : ""}`}
+                        onClick={() => applyThemePreset(theme.value)}
+                        role="menuitemradio"
+                        aria-checked={themeChoice === theme.value}
+                      >
+                        <span className="theme-preset-text">
+                          <strong>{theme.label}</strong>
+                          <small>{theme.summary}</small>
+                        </span>
+                        <span className="theme-swatch-row" aria-hidden="true">
+                          {theme.swatches.map((swatch) => (
+                            <span key={swatch} style={{ backgroundColor: swatch }} />
+                          ))}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <label className="design-select-row">
+                  <span>Font</span>
+                  <select value={fontChoice} onChange={(event) => setFontChoice(event.target.value as FontChoice)}>
+                    {fontChoices.map((choice) => (
+                      <option key={choice.value} value={choice.value}>
+                        {choice.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className="design-section">
+                  <span className="design-section-label">Mode</span>
+                  <div className="design-mode-toggle">
+                    {modeChoices.map((choice) => (
+                      <button
+                        key={choice.value}
+                        type="button"
+                        className={modeChoice === choice.value ? "active" : ""}
+                        onClick={() => setModeChoice(choice.value)}
+                        role="menuitemradio"
+                        aria-checked={modeChoice === choice.value}
+                      >
+                        {choice.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="design-section">
+                  <span className="design-section-label">Color</span>
+                  <div className="accent-choice-grid">
+                    {accentChoices.map((choice) => (
+                      <button
+                        key={choice.value}
+                        type="button"
+                        className={accentChoice === choice.value ? "active" : ""}
+                        onClick={() => setAccentChoice(choice.value)}
+                        role="menuitemradio"
+                        aria-checked={accentChoice === choice.value}
+                      >
+                        <span style={{ backgroundColor: choice.swatch }} aria-hidden="true" />
+                        {choice.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
           <div className="operator-chip">
             <Users size={16} />
             <NameAutocomplete

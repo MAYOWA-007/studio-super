@@ -4,7 +4,7 @@ import { compactDate, formatZonedDateTime } from "./time";
 import { crewLabels } from "./storage";
 import { buildExportSections, type ExportNoteRow } from "./exportSections";
 
-export type ExportFont = "modern" | "classic" | "mono";
+export type ExportFont = "modern" | "classic" | "mono" | "editorial" | "wide";
 
 interface ExportOptions {
   font?: ExportFont;
@@ -35,7 +35,7 @@ const colors = {
 let activePdfFont: ExportFont = "modern";
 
 function pdfFontName() {
-  if (activePdfFont === "classic") {
+  if (activePdfFont === "classic" || activePdfFont === "editorial") {
     return "times";
   }
 
