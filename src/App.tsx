@@ -771,6 +771,28 @@ function App() {
       )
       .sort((a, b) => b.utcIso.localeCompare(a.utcIso));
   }, [activeProduction, timelineSearch, typeFilter]);
+  const latestRecordMarker = useMemo(() => {
+    if (!activeProduction) {
+      return null;
+    }
+
+    return activeProduction.noteLogs
+      .filter((note) => !note.deletedAtUtc && (note.eventType === "Record Start" || note.eventType === "Record Stop"))
+      .sort((a, b) => b.utcIso.localeCompare(a.utcIso))[0] || null;
+  }, [activeProduction]);
+  const recordControlState =
+    latestRecordMarker?.eventType === "Record Start"
+      ? "recording"
+      : latestRecordMarker?.eventType === "Record Stop"
+        ? "stopped"
+        : "idle";
+  const recordControlLabel = recordControlState === "recording" ? "Record Stop" : "Record Start";
+  const recordControlCaption =
+    recordControlState === "recording"
+      ? "Recording live"
+      : recordControlState === "stopped"
+        ? "Stopped"
+        : "Ready";
 
   useEffect(() => {
     if (summaries.some((summary) => summary.code === startupExistingCode)) {
@@ -1203,6 +1225,15 @@ function App() {
         rosterNames: collectRosterNames({ ...production, noteLogs })
       };
     });
+  }
+
+  function toggleRecord() {
+    if (recordControlState === "recording") {
+      recordStop();
+      return;
+    }
+
+    logEvent("Record Start");
   }
 
   function renameQuickButton(id: string, label: string) {
@@ -1681,10 +1712,18 @@ function App() {
                   </select>
                 </label>
                 <div className="v4-button-row">
-                  <button className="secondary-button timer-step timer-step-record-start" onClick={() => logEvent("Record Start")} disabled={!operatorName}>
+                  <button
+                    className={`secondary-button timer-step timer-step-record timer-step-record-${recordControlState}`}
+                    onClick={toggleRecord}
+                    disabled={!operatorName}
+                    aria-pressed={recordControlState === "recording"}
+                  >
                     <span className="timer-step-number">1</span>
-                    <Radio size={16} />
-                    Record Start
+                    {recordControlState === "recording" ? <Square size={18} /> : <Radio size={18} />}
+                    <span className="timer-step-label">
+                      <strong>{recordControlLabel}</strong>
+                      <small>{recordControlCaption}</small>
+                    </span>
                   </button>
                   <button
                     className={`target-action timer-step timer-step-target ${targetTimer.status === "running" ? "pause" : "start"}`}
@@ -1693,11 +1732,6 @@ function App() {
                     <span className="timer-step-number">2</span>
                     {targetTimer.status === "running" ? <PauseCircle size={18} /> : <PlayCircle size={18} />}
                     {targetTimer.status === "running" ? "Target Pause" : targetTimer.status === "paused" ? "Target Resume" : "Target Start"}
-                  </button>
-                  <button className="secondary-button timer-step timer-step-record-stop" onClick={recordStop} disabled={!operatorName}>
-                    <span className="timer-step-number">3</span>
-                    <Square size={16} />
-                    Record Stop
                   </button>
                   <button className="target-reset" onClick={resetTargetTimer} title="Reset target time">
                     <RotateCcw size={18} />

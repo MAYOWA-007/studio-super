@@ -2306,6 +2306,240 @@ code {
   }
 }
 
+/* Final touch-target pass: record toggle state, tablet scaling, and phone scaling. */
+@keyframes recordBreathFinal {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(228, 0, 43, 0.46),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+    filter: saturate(1);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 8px rgba(228, 0, 43, 0),
+      0 0 30px rgba(228, 0, 43, 0.55),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+    filter: saturate(1.18);
+  }
+}
+
+.v4-shell .v4-button-row {
+  grid-template-columns: minmax(0, 1.38fr) minmax(0, 1fr) 50px !important;
+  gap: 10px !important;
+  align-items: stretch !important;
+}
+
+.v4-shell .v4-button-row > button {
+  width: 100% !important;
+}
+
+.v4-shell .timer-step,
+.v4-shell .target-reset,
+.v4-shell .v4-time-adders button,
+.v4-shell .v4-event-grid .event-button,
+.v4-shell .v4-export-buttons button,
+.startup-choice {
+  min-height: 52px !important;
+  border-radius: 9px !important;
+  font-weight: 950 !important;
+}
+
+.v4-shell .timer-step {
+  gap: 8px !important;
+  padding: 8px 12px 8px 38px !important;
+  border-width: 1.5px !important;
+  font-size: clamp(0.86rem, 0.96vw, 1rem) !important;
+}
+
+.v4-shell .timer-step-number {
+  left: 10px !important;
+  width: 20px !important;
+  height: 20px !important;
+  font-size: 0.7rem !important;
+}
+
+.v4-shell .timer-step-label {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  line-height: 1;
+}
+
+.v4-shell .timer-step-label strong {
+  font-size: clamp(0.86rem, 0.98vw, 1.03rem);
+}
+
+.v4-shell .timer-step-label small {
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.v4-shell .timer-step-record {
+  border-color: rgba(255, 198, 0, 0.44) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 198, 0, 0.13), rgba(248, 245, 249, 0.06)),
+    rgba(12, 10, 8, 0.94) !important;
+}
+
+.v4-shell .timer-step-record-stopped {
+  border-color: rgba(248, 245, 249, 0.24) !important;
+  background: rgba(248, 245, 249, 0.08) !important;
+}
+
+.v4-shell .timer-step-record-recording {
+  border-color: rgba(255, 86, 106, 0.95) !important;
+  background:
+    linear-gradient(180deg, rgba(228, 0, 43, 0.94), rgba(117, 0, 18, 0.96)),
+    #e4002b !important;
+  color: #ffffff !important;
+  animation: recordBreathFinal 1.55s ease-in-out infinite !important;
+}
+
+.v4-shell .timer-step-record-recording .timer-step-number {
+  background: #ffffff;
+  color: #e4002b;
+}
+
+.v4-shell .timer-step-record-recording svg {
+  fill: currentColor;
+}
+
+.v4-shell .target-reset {
+  width: 50px !important;
+}
+
+.v4-shell .v4-event-grid {
+  grid-auto-rows: minmax(66px, 1fr) !important;
+}
+
+.v4-shell .v4-event-grid .event-button {
+  padding: 10px 8px !important;
+}
+
+@media (min-width: 721px) and (max-width: 1180px), (pointer: coarse) and (min-width: 721px) {
+  .v4-shell .timer-step,
+  .v4-shell .target-reset,
+  .v4-shell .v4-time-adders button {
+    min-height: 58px !important;
+  }
+
+  .v4-shell .v4-button-row {
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) 56px !important;
+    gap: 12px !important;
+  }
+
+  .v4-shell .target-reset {
+    width: 56px !important;
+  }
+
+  .v4-shell .v4-event-grid {
+    grid-auto-rows: minmax(74px, 1fr) !important;
+  }
+
+  .v4-shell .v4-event-grid .event-button span {
+    font-size: 0.92rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .v4-shell .v4-log-page {
+    grid-template-rows: 44px minmax(430px, auto) minmax(0, 1fr) !important;
+    overflow-y: auto !important;
+  }
+
+  .v4-shell .mobile-panel-switcher {
+    min-height: 40px !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .v4-shell .mobile-panel-switcher button {
+    min-height: 40px !important;
+  }
+
+  .v4-shell .target-panel {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto auto auto auto !important;
+    gap: 8px !important;
+    overflow: visible !important;
+  }
+
+  .v4-shell .target-panel .v4-card-head,
+  .v4-shell .target-panel .v4-clock-strip,
+  .v4-shell .target-panel .v4-target-controls,
+  .v4-shell .target-panel .v4-time-adders,
+  .v4-shell .target-panel .v4-stat-grid {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+
+  .v4-shell .target-panel .v4-target-controls {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .v4-shell .target-panel .v4-stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .v4-shell .v4-button-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 9px !important;
+  }
+
+  .v4-shell .timer-step-record {
+    grid-column: 1 / -1 !important;
+  }
+
+  .v4-shell .target-reset {
+    width: 100% !important;
+    min-height: 52px !important;
+  }
+
+  .v4-shell .timer-step {
+    min-height: 56px !important;
+    padding: 8px 8px 8px 30px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .v4-shell .timer-step svg {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+  }
+
+  .v4-shell .timer-step-number {
+    left: 7px;
+  }
+
+  .v4-shell .timer-step-label small {
+    font-size: 0.58rem;
+  }
+
+  .v4-shell .v4-time-adders button,
+  .v4-shell .v4-event-grid .event-button,
+  .v4-shell .v4-export-buttons button {
+    min-height: 54px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .v4-shell .v4-button-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .v4-shell .timer-step,
+  .v4-shell .target-reset {
+    min-height: 58px !important;
+  }
+}
+
 /* v8 drawer width fix: this must remain after all historical quick-editor rules. */
 .v4-shell .quick-editor-panel {
   grid-template-columns: minmax(0, 1fr) !important;
