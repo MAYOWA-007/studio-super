@@ -6067,3 +6067,241 @@ html[data-theme][data-mode] .v4-shell .timer-step-record-recording .timer-step-n
     height: 17px;
   }
 }
+
+/* v11 contrast guard: explicit foregrounds for WCAG AA text contrast. */
+html[data-theme="studio-super"] {
+  --theme-on-accent: #ffffff;
+  --theme-on-accent-2: #050505;
+  --theme-on-accent-3: #050505;
+}
+
+html[data-theme="cyberpunk"] {
+  --theme-on-accent: #050505;
+  --theme-on-accent-2: #050505;
+  --theme-on-accent-3: #050505;
+}
+
+html[data-theme="crimson-crown"] {
+  --theme-on-accent: #ffffff;
+  --theme-on-accent-2: #050505;
+  --theme-on-accent-3: #ffffff;
+}
+
+html[data-theme="aurora-glass"] {
+  --theme-on-accent: #050505;
+  --theme-on-accent-2: #050505;
+  --theme-on-accent-3: #050505;
+}
+
+html[data-theme="polar-slate"] {
+  --theme-on-accent: #ffffff;
+  --theme-on-accent-2: #050505;
+  --theme-on-accent-3: #ffffff;
+}
+
+html[data-theme="solar-cream"] {
+  --theme-on-accent: #ffffff;
+  --theme-on-accent-2: #050505;
+  --theme-on-accent-3: #ffffff;
+}
+
+html[data-theme="graphite-lime"] {
+  --theme-on-accent: #050505;
+  --theme-on-accent-2: #050505;
+  --theme-on-accent-3: #050505;
+}
+
+html[data-theme="royal-amethyst"] {
+  --theme-on-accent: #050505;
+  --theme-on-accent-2: #050505;
+  --theme-on-accent-3: #050505;
+}
+
+html[data-theme="oceanic-coral"] {
+  --theme-on-accent: #050505;
+  --theme-on-accent-2: #050505;
+  --theme-on-accent-3: #050505;
+}
+
+html[data-theme="rose-noir"] {
+  --theme-on-accent: #050505;
+  --theme-on-accent-2: #050505;
+  --theme-on-accent-3: #ffffff;
+}
+
+html[data-accent="theme"] {
+  --on-accent-live: var(--theme-on-accent);
+  --on-accent-2-live: var(--theme-on-accent-2);
+  --on-accent-3-live: var(--theme-on-accent-3);
+}
+
+html[data-accent="teal"] {
+  --on-accent-live: #050505;
+  --on-accent-2-live: #050505;
+  --on-accent-3-live: #050505;
+}
+
+html[data-accent="gold"] {
+  --on-accent-live: #050505;
+  --on-accent-2-live: #ffffff;
+  --on-accent-3-live: #ffffff;
+}
+
+html[data-accent="crimson"] {
+  --on-accent-live: #ffffff;
+  --on-accent-2-live: #050505;
+  --on-accent-3-live: #ffffff;
+}
+
+html[data-accent="violet"] {
+  --on-accent-live: #050505;
+  --on-accent-2-live: #050505;
+  --on-accent-3-live: #050505;
+}
+
+html[data-theme][data-mode] {
+  --danger-fill: color-mix(in srgb, var(--theme-red) 72%, #050505);
+  --on-danger-fill: #ffffff;
+  --placeholder-text: var(--muted);
+}
+
+html[data-theme][data-mode] .v4-tabs button.active,
+html[data-theme][data-mode] .mobile-panel-switcher button.active,
+html[data-theme][data-mode] .target-status,
+html[data-theme][data-mode] .event-tag,
+html[data-theme][data-mode] .name-menu button:hover,
+html[data-theme][data-mode] .design-mode-toggle button.active,
+html[data-theme][data-mode] .accent-choice-grid button.active,
+html[data-theme][data-mode] .primary-button,
+html[data-theme][data-mode] .target-action.start {
+  background: var(--accent-live) !important;
+  border-color: color-mix(in srgb, var(--accent-live) 78%, transparent) !important;
+  color: var(--on-accent-live) !important;
+}
+
+html[data-theme][data-mode] .v4-tabs button.active svg,
+html[data-theme][data-mode] .mobile-panel-switcher button.active svg,
+html[data-theme][data-mode] .target-status svg,
+html[data-theme][data-mode] .event-tag svg,
+html[data-theme][data-mode] .name-menu button:hover svg,
+html[data-theme][data-mode] .design-mode-toggle button.active svg,
+html[data-theme][data-mode] .accent-choice-grid button.active svg,
+html[data-theme][data-mode] .primary-button svg,
+html[data-theme][data-mode] .target-action.start svg {
+  color: currentColor;
+}
+
+html[data-theme][data-mode] .app-reset-button,
+html[data-theme][data-mode] .v4-time-adders button {
+  background: color-mix(in srgb, var(--accent-2-live) 14%, var(--panel-strong)) !important;
+  border-color: color-mix(in srgb, var(--accent-2-live) 48%, transparent) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme][data-mode] .app-reset-button svg,
+html[data-theme][data-mode] .v4-time-adders button svg {
+  color: var(--accent-2-live);
+}
+
+html[data-theme][data-mode] input::placeholder,
+html[data-theme][data-mode] textarea::placeholder {
+  color: var(--placeholder-text) !important;
+  opacity: 1;
+}
+
+html[data-theme][data-mode] .local-storage-note,
+html[data-theme][data-mode] .design-menu-note {
+  background: color-mix(in srgb, var(--accent-2-live) 9%, var(--panel)) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme][data-mode] .local-storage-note svg {
+  color: var(--text) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .timer-step-record-recording {
+  border-color: color-mix(in srgb, var(--danger-fill) 86%, #ffffff) !important;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--danger-fill) 88%, #ffffff),
+      var(--danger-fill)
+    ),
+    var(--danger-fill) !important;
+  color: var(--on-danger-fill) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .timer-step-record-recording .timer-step-number {
+  background: var(--on-danger-fill) !important;
+  color: var(--danger-fill) !important;
+}
+
+/* v12 readability guard: keep secondary text and form text AA-readable. */
+html[data-theme][data-mode] {
+  --supporting-text: color-mix(in srgb, var(--text) 84%, var(--bg));
+  --soft-text: color-mix(in srgb, var(--text) 72%, var(--bg));
+  --placeholder-text: var(--supporting-text);
+}
+
+html[data-mode="dark"] {
+  --app-input-bg: color-mix(in srgb, var(--panel-strong) 88%, #000000);
+}
+
+html[data-mode="light"] {
+  --app-input-bg: color-mix(in srgb, var(--panel) 92%, #ffffff);
+}
+
+html[data-theme][data-mode] .v4-title-input,
+html[data-theme][data-mode] input,
+html[data-theme][data-mode] select,
+html[data-theme][data-mode] textarea,
+html[data-theme][data-mode] .v4-timeline-list > .note-card textarea,
+html[data-theme][data-mode] .logging-panel > textarea,
+html[data-theme][data-mode] .v4-export-fields textarea {
+  background: var(--app-input-bg) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme][data-mode] .v4-tabs button,
+html[data-theme][data-mode] .panel-kicker,
+html[data-theme][data-mode] .eyebrow,
+html[data-theme][data-mode] .header-meta small,
+html[data-theme][data-mode] .v4-clock-strip span,
+html[data-theme][data-mode] .v4-card-head small,
+html[data-theme][data-mode] .note-actions span,
+html[data-theme][data-mode] .event-button small,
+html[data-theme][data-mode] .design-section-label,
+html[data-theme][data-mode] .design-select-row > span,
+html[data-theme][data-mode] .design-menu-head span,
+html[data-theme][data-mode] .theme-preset-button small,
+html[data-theme][data-mode] .theme-preset-text small,
+html[data-theme][data-mode] .name-menu small,
+html[data-theme][data-mode] .production-item small,
+html[data-theme][data-mode] .clock-panel small,
+html[data-theme][data-mode] .timer-step-label small,
+html[data-theme][data-mode] .note-actions details,
+html[data-theme][data-mode] .design-menu-trigger small,
+html[data-theme][data-mode] .v4-timeline-list .note-timecode,
+html[data-theme][data-mode] .note-timecode {
+  color: var(--supporting-text) !important;
+}
+
+html[data-theme][data-mode] .theme-preset-button.active small,
+html[data-theme][data-mode] .v4-tabs button.active,
+html[data-theme][data-mode] .mobile-panel-switcher button.active,
+html[data-theme][data-mode] .target-status,
+html[data-theme][data-mode] .event-tag,
+html[data-theme][data-mode] .name-menu button:hover,
+html[data-theme][data-mode] .design-mode-toggle button.active,
+html[data-theme][data-mode] .accent-choice-grid button.active,
+html[data-theme][data-mode] .primary-button,
+html[data-theme][data-mode] .target-action.start {
+  color: var(--on-accent-live) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .timer-step-record-recording,
+html[data-theme][data-mode] .v4-shell .timer-step-record-recording small,
+html[data-theme][data-mode] .v4-shell .timer-step-record-recording strong,
+html[data-theme][data-mode] .v4-shell .timer-step-record-recording span {
+  color: var(--on-danger-fill) !important;
+}
