@@ -1,0 +1,34 @@
+/* Final v8 overrides loaded after the legacy stylesheet. */
+.v4-shell .quick-editor-panel {
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-auto-flow: row !important;
+}
+
+.v4-shell .quick-editor-panel > .quick-button-list,
+.v4-shell .quick-editor-panel > .v4-join-panel {
+  grid-column: 1 / -1 !important;
+  width: 100%;
+  min-width: 0;
+}
+
+.v4-shell .quick-editor-panel .quick-button-list {
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.v4-shell .quick-editor-panel .quick-button-list label {
+  width: 100%;
+  box-sizing: border-box;
+  grid-template-columns: minmax(0, 1fr) minmax(112px, 140px) 36px !important;
+}
+
+.v4-shell .quick-editor-panel .v4-join-panel {
+  grid-template-columns: minmax(0, 1fr) minmax(108px, 0.42fr) minmax(58px, auto) minmax(68px, auto) !important;
+}
+
+@media (max-width: 720px) {
+  .v4-shell .quick-editor-panel .quick-button-list label,
+  .v4-shell .quick-editor-panel .v4-join-panel {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}

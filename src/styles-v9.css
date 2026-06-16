@@ -1,0 +1,142 @@
+/* Studio Super v9 final layout and task-mode polish. */
+.v4-shell .v4-brand strong {
+  white-space: nowrap;
+}
+
+.v4-shell .v4-title-block {
+  align-items: start;
+  text-align: left;
+}
+
+.v4-shell .v4-title-block .eyebrow,
+.v4-shell .v4-title-input {
+  text-align: left;
+}
+
+.v4-shell .v4-title-input:not(:focus) {
+  text-align: left;
+}
+
+.v4-shell .header-meta {
+  justify-content: start;
+}
+
+.v4-shell .header-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.v4-shell .header-meta small {
+  color: rgba(248, 245, 249, 0.56);
+  font-size: 0.64rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.v4-shell .v4-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.v4-shell .v9-details-page {
+  grid-template-columns: minmax(260px, 0.82fr) minmax(380px, 1.18fr) minmax(340px, 1fr);
+}
+
+.v4-shell .v9-export-page {
+  grid-template-columns: minmax(360px, 760px);
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.v4-shell .v9-export-page .export-panel {
+  min-height: min(640px, 100%);
+}
+
+.v4-shell .production-list.v4-production-list {
+  overflow-y: auto;
+  overflow-x: hidden;
+  grid-template-rows: none;
+  align-content: start;
+}
+
+.v4-shell .quick-button-settings .quick-editor-panel {
+  min-height: 0;
+}
+
+.v4-shell .quick-button-settings .quick-button-list {
+  max-height: min(52vh, 520px);
+  overflow-y: auto;
+}
+
+.v4-shell .quick-button-groups {
+  gap: 14px;
+}
+
+.v4-shell .quick-button-group + .quick-button-group {
+  padding-top: 10px;
+  border-top: 1px solid rgba(248, 245, 249, 0.12);
+}
+
+.v4-shell .timeline-count {
+  margin-left: 7px;
+  color: rgba(248, 245, 249, 0.62);
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.v4-shell .target-stat-grid strong {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+  font-size: clamp(0.88rem, 1.15vw, 1.12rem);
+}
+
+.v4-shell .metadata-panel input,
+.v4-shell .metadata-panel select,
+.v4-shell .production-switcher input,
+.v4-shell .production-switcher select,
+.v4-shell .export-panel textarea,
+.v4-shell .name-combobox-shell input {
+  background: #2a2b2f;
+  border-color: rgba(248, 245, 249, 0.28);
+  color: #ffffff;
+}
+
+.v4-shell .note-card.note-kind-event .event-tag {
+  background: #228b7d;
+  color: #ffffff;
+}
+
+.v4-shell .note-card.note-kind-issue .event-tag {
+  background: #e4002b;
+  color: #ffffff;
+}
+
+@media (max-width: 1120px) {
+  .v4-shell .v9-details-page {
+    grid-template-columns: minmax(0, 1fr);
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .v4-shell .v4-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .v4-shell .v4-tabs button {
+    padding: 0 5px;
+    font-size: 0.68rem;
+  }
+
+  .v4-shell .v9-export-page,
+  .v4-shell .v9-details-page {
+    grid-template-columns: minmax(0, 1fr);
+    overflow-y: auto;
+  }
+
+  .v4-shell .quick-button-settings .quick-button-list {
+    max-height: 48dvh;
+  }
+}

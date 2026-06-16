@@ -4,9 +4,10 @@ import { nowUtcIso } from "./time";
 const PRODUCTIONS_KEY = "studio-super:productions";
 const ACTIVE_CODE_KEY = "studio-super:active-code";
 const OPERATOR_KEY = "studio-super:operator";
-const STARTER_CODE = "session";
+const STARTER_CODE = "new-production";
+const defaultRecordingYear = new Date().getFullYear();
 
-export const defaultRecordingPath = "";
+export const defaultRecordingPath = `/Volumes/Production/${defaultRecordingYear}/Studio ${defaultRecordingYear}/`;
 
 function localDateInputValue(date = new Date()) {
   const year = date.getFullYear();
@@ -18,7 +19,8 @@ function localDateInputValue(date = new Date()) {
 function localTimeInputValue(date = new Date()) {
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${hours}:${minutes}`;
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
 }
 
 export function createDefaultTargetTimer(): TargetTimer {
@@ -69,12 +71,12 @@ export function normalizeCode(input: string) {
 
 export function createBlankProduction(codeInput: string, titleInput = ""): Production {
   const now = nowUtcIso();
-  const code = normalizeCode(codeInput) || `session-${Date.now().toString(36)}`;
+  const code = normalizeCode(codeInput) || `production-${Date.now().toString(36)}`;
 
   return {
     id: uid("prod"),
     code,
-    title: titleInput.trim() || "",
+    title: titleInput.trim() || code,
     shortName: code,
     sessionDate: localDateInputValue(),
     recordingPath: defaultRecordingPath,
@@ -99,21 +101,25 @@ export function createStarterProduction(): Production {
   };
 }
 
-export function sanitizeProductions(productions: Production[]) {
-  return productions.map((production) => ({
-    ...createStarterProduction(),
+function sanitizeProduction(production: Production): Production {
+  const productionWithDefaults = {
     ...production,
-    crew: {
-      ...emptyCrew,
-      ...production.crew
-    },
-    targetTimer: {
-      ...createDefaultTargetTimer(),
-      ...production.targetTimer
-    },
-    noteLogs: Array.isArray(production.noteLogs) ? production.noteLogs : [],
-    rosterNames: Array.isArray(production.rosterNames) ? production.rosterNames : []
-  }));
+    targetTimer: production.targetTimer || createDefaultTargetTimer()
+  };
+  const isStarterBlank =
+    productionWithDefaults.code === STARTER_CODE &&
+    !productionWithDefaults.sessionDate &&
+    !productionWithDefaults.title &&
+    productionWithDefaults.noteLogs.length === 0;
+
+  return {
+    ...productionWithDefaults,
+    sessionDate: isStarterBlank ? localDateInputValue() : productionWithDefaults.sessionDate
+  };
+}
+
+export function sanitizeProductions(productions: Production[]) {
+  return productions.map(sanitizeProduction);
 }
 
 export function summarizeProduction(production: Production): ProductionSummary {
@@ -135,7 +141,9 @@ export function loadProductions(): Production[] {
 
   try {
     const parsed = JSON.parse(raw) as Production[];
-    return Array.isArray(parsed) && parsed.length > 0 ? sanitizeProductions(parsed) : [createStarterProduction()];
+    return Array.isArray(parsed) && parsed.length > 0
+      ? sanitizeProductions(parsed)
+      : [createStarterProduction()];
   } catch {
     return [createStarterProduction()];
   }

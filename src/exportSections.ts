@@ -13,6 +13,8 @@ export interface ExportNoteRow {
   operatorName: string;
 }
 
+const hiddenSystemEvents = new Set(["Target Time Reset", "Target Time"]);
+
 function chronologicalNotes(production: Production) {
   return [...production.noteLogs].sort((a, b) => a.utcIso.localeCompare(b.utcIso));
 }
@@ -38,7 +40,7 @@ function cleanNoteText(note: NoteLog) {
   return text;
 }
 
-function shortSessionTime(iso: string) {
+function shortStudioTime(iso: string) {
   return new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
@@ -51,12 +53,12 @@ function shortSessionTime(iso: string) {
 function noteKind(eventType: string): "Event" | "Issue" {
   const normalized = eventType.toLowerCase();
   if (
-    normalized.includes("issue") ||
     normalized.includes("audio") ||
+    normalized.includes("zoom") ||
     normalized.includes("video") ||
     normalized.includes("noise") ||
-    normalized.includes("flag") ||
-    normalized.includes("problem")
+    normalized.includes("editor") ||
+    normalized.includes("custom")
   ) {
     return "Issue";
   }
@@ -66,7 +68,7 @@ function noteKind(eventType: string): "Event" | "Issue" {
 
 function noteToRow(note: NoteLog): ExportNoteRow {
   return {
-    time: shortSessionTime(note.utcIso),
+    time: shortStudioTime(note.utcIso),
     kind: noteKind(note.eventType),
     eventType: note.eventType,
     note: cleanNoteText(note),
@@ -83,7 +85,9 @@ function manualNotes(production: Production) {
 
 export function buildExportSections(production: Production): ExportSections {
   return {
-    logRows: activeNotes(production).map(noteToRow),
+    logRows: activeNotes(production)
+      .filter((note) => !hiddenSystemEvents.has(note.eventType))
+      .map(noteToRow),
     manualNotes: manualNotes(production)
   };
 }
