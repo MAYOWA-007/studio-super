@@ -475,11 +475,11 @@ h2 {
   font-weight: 900;
 }
 
-.program-step.start {
+.target-step.start {
   border-color: rgba(95, 196, 141, 0.65);
 }
 
-.program-step.pause {
+.target-step.pause {
   border-color: rgba(225, 6, 0, 0.68);
 }
 

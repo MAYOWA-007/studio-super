@@ -252,7 +252,7 @@ function eventKind(eventType: string): QuickActionTone {
   if (normalized.includes("issue") || normalized.includes("flag") || normalized.includes("problem")) {
     return "issue";
   }
-  if (normalized.includes("timer") || normalized.includes("program time")) {
+  if (normalized.includes("timer") || normalized.includes("target time")) {
     return "timer";
   }
   return "event";
@@ -310,13 +310,13 @@ function App() {
   const visibleTime = formatClock(new Date(nowMs), selectedTimeZone);
   const targetStatus =
     targetTimer.status === "running" && targetSnapshot.remainingMs < 0
-      ? "Over program time"
+      ? "Over target time"
       : targetTimer.status === "complete"
-        ? "Program time reached"
+        ? "Target time reached"
         : targetTimer.status === "running"
-          ? "Program time running"
+          ? "Target time running"
           : targetTimer.status === "paused"
-            ? "Program time paused"
+            ? "Target time paused"
             : "Ready to start";
 
   useEffect(() => {
@@ -384,7 +384,7 @@ function App() {
   }
 
   function timerNote(eventType: string, text: string, utcIso: string): NoteLog {
-    const noteOperator = operatorName.trim() || "Program Clock";
+    const noteOperator = operatorName.trim() || "Target Clock";
     return {
       id: uid("note"),
       eventType,
@@ -557,13 +557,13 @@ function App() {
     });
   }
 
-  function startOrResumeProgramTime() {
+  function startOrResumeTargetTime() {
     updateTimerWithNote((timer, utcIso) => {
       if (timer.status === "running") {
         return {
           timer,
-          eventType: "Program Time",
-          text: "Program time already running"
+          eventType: "Target Time",
+          text: "Target time already running"
         };
       }
 
@@ -578,8 +578,8 @@ function App() {
             pauseStartedAtUtc: undefined,
             pauseCount
           },
-          eventType: "Program Time Resume",
-          text: `Program time resumed after pause #${pauseCount} (${formatDurationLong(pauseMs)})`
+          eventType: "Target Time Resume",
+          text: `Target time resumed after pause #${pauseCount} (${formatDurationLong(pauseMs)})`
         };
       }
 
@@ -601,13 +601,13 @@ function App() {
           pauseStartedAtUtc: undefined,
           pauseCount: 0
         },
-        eventType: "Program Time Start",
-        text: `Program time started: ${timer.targetMinutes} minute target`
+        eventType: "Target Time Start",
+        text: `Target time started: ${timer.targetMinutes} minute target`
       };
     });
   }
 
-  function pauseProgramTime() {
+  function pauseTargetTime() {
     updateTimerWithNote((timer, utcIso) => {
       const snapshot = buildTargetSnapshot(timer, utcIso, selectedTimeZone);
       return {
@@ -619,13 +619,13 @@ function App() {
           pauseStartedAtUtc: utcIso,
           completedAtUtc: undefined
         },
-        eventType: "Program Time Pause",
-        text: `Program time paused at ${formatDuration(snapshot.activeMs)} active, ${formatRemaining(snapshot.remainingMs)} remaining`
+        eventType: "Target Time Pause",
+        text: `Target time paused at ${formatDuration(snapshot.activeMs)} active, ${formatRemaining(snapshot.remainingMs)} remaining`
       };
     });
   }
 
-  function completeProgramTime() {
+  function completeTargetTime() {
     updateTimerWithNote((timer, utcIso) => {
       const snapshot = buildTargetSnapshot(timer, utcIso, selectedTimeZone);
       return {
@@ -637,14 +637,14 @@ function App() {
           pauseStartedAtUtc: undefined,
           completedAtUtc: utcIso
         },
-        eventType: "Program Time Complete",
-        text: `Program time completed at ${formatDuration(snapshot.activeMs)} active`
+        eventType: "Target Time Complete",
+        text: `Target time completed at ${formatDuration(snapshot.activeMs)} active`
       };
     });
   }
 
-  function resetProgramTime() {
-    if (!window.confirm("Reset the program clock for this session?")) {
+  function resetTargetTime() {
+    if (!window.confirm("Reset the target clock for this session?")) {
       return;
     }
 
@@ -657,8 +657,8 @@ function App() {
         accumulatedMs: 0,
         pauseCount: 0
       },
-      eventType: "Program Time Reset",
-      text: "Program time reset"
+      eventType: "Target Time Reset",
+      text: "Target time reset"
     }));
   }
 
@@ -822,7 +822,7 @@ function App() {
                 </div>
                 <div className="timer-meta">
                   <label>
-                    Program time
+                    Target time
                     <select value={targetTimer.targetMinutes} onChange={(event) => updateTimerTarget(Number(event.target.value))}>
                       {targetOptions.map((minutes) => (
                         <option key={minutes} value={minutes}>
@@ -847,9 +847,9 @@ function App() {
                     Record Start
                   </button>
                   <button
-                    className={`timer-step program-step ${targetTimer.status === "running" ? "pause" : "start"}`}
+                    className={`timer-step target-step ${targetTimer.status === "running" ? "pause" : "start"}`}
                     type="button"
-                    onClick={targetTimer.status === "running" ? pauseProgramTime : startOrResumeProgramTime}
+                    onClick={targetTimer.status === "running" ? pauseTargetTime : startOrResumeTargetTime}
                   >
                     <span className="timer-step-number">2</span>
                     {targetTimer.status === "running" ? (
@@ -858,26 +858,26 @@ function App() {
                       <PlayCircle size={17} aria-hidden="true" />
                     )}
                     {targetTimer.status === "running"
-                      ? "Program Pause"
+                      ? "Target Pause"
                       : targetTimer.status === "paused"
-                        ? "Program Resume"
-                        : "Program Start"}
+                        ? "Target Resume"
+                        : "Target Start"}
                   </button>
                   <button className="timer-step" type="button" onClick={recordStop}>
                     <span className="timer-step-number">3</span>
                     <Square size={17} aria-hidden="true" />
                     Record Stop
                   </button>
-                  <button type="button" onClick={completeProgramTime}>
+                  <button type="button" onClick={completeTargetTime}>
                     <CheckCircle2 size={17} aria-hidden="true" />
                     Complete
                   </button>
-                  <button type="button" onClick={resetProgramTime}>
+                  <button type="button" onClick={resetTargetTime}>
                     <RotateCcw size={17} aria-hidden="true" />
                     Reset
                   </button>
                 </div>
-                <div className="time-adders" aria-label="Add program time">
+                <div className="time-adders" aria-label="Add target time">
                   <button type="button" onClick={() => addTargetMinutes(1)}>
                     +1 min
                   </button>
@@ -892,7 +892,7 @@ function App() {
                     <strong>{formatDuration(targetSnapshot.activeMs)}</strong>
                   </div>
                   <div>
-                    <span>Program ends</span>
+                    <span>Target ends</span>
                     <strong>{formatClock(targetSnapshot.plannedEnd, selectedTimeZone)}</strong>
                   </div>
                 </div>
