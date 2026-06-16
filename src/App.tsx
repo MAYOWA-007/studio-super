@@ -9,14 +9,15 @@ import {
   Flag,
   Mic2,
   Monitor,
-  Pause,
-  Play,
+  PauseCircle,
+  PlayCircle,
   Plus,
+  Radio,
   RotateCcw,
   Save,
   Search,
   Settings2,
-  TimerReset,
+  Square,
   Trash2,
   Type,
   Video
@@ -71,6 +72,16 @@ const quickActions: QuickAction[] = [
 ];
 
 const fontStorageKey = "studio-super:font";
+const pacificTimeZone = "America/Los_Angeles";
+const timeZoneKey = "studio-super:selected-time-zone";
+const targetMinuteOptions = [30, 45, 60, 75, 90, 120, 150, 180];
+
+const timeZoneOptions = [
+  { label: "West Coast", value: "America/Los_Angeles" },
+  { label: "East Coast", value: "America/New_York" }
+] as const;
+
+type TimeZoneValue = (typeof timeZoneOptions)[number]["value"];
 
 function initialProductions() {
   const loaded = loadProductions();
@@ -85,20 +96,151 @@ function formatElapsed(ms: number) {
   return [hours, minutes, seconds].map((value) => String(value).padStart(2, "0")).join(":");
 }
 
-function timerElapsedMs(timer: TargetTimer, nowMs = Date.now()) {
-  const activeRun =
-    timer.status === "running" && timer.lastStartedAtUtc
-      ? nowMs - new Date(timer.lastStartedAtUtc).getTime()
-      : 0;
-
-  return Math.max(0, timer.accumulatedMs + activeRun);
+function padTimePart(value: number) {
+  return String(value).padStart(2, "0");
 }
 
-function timerStatusLabel(timer: TargetTimer) {
-  if (timer.status === "running") return "Running";
-  if (timer.status === "paused") return "Paused";
-  if (timer.status === "complete") return "Complete";
-  return "Ready";
+function formatDuration(ms: number) {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${padTimePart(minutes)}:${padTimePart(seconds)}`;
+  }
+
+  return `${padTimePart(minutes)}:${padTimePart(seconds)}`;
+}
+
+function formatRemaining(ms: number) {
+  if (ms < 0) {
+    return `+${formatDuration(Math.abs(ms))}`;
+  }
+
+  return formatDuration(ms);
+}
+
+function formatDurationLong(ms: number) {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+}
+
+function zonedParts(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+    hourCycle: "h23",
+    timeZone
+  }).formatToParts(date);
+
+  const partMap = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return {
+    year: Number(partMap.year),
+    month: Number(partMap.month),
+    day: Number(partMap.day),
+    hour: Number(partMap.hour),
+    minute: Number(partMap.minute),
+    second: Number(partMap.second)
+  };
+}
+
+function timeZoneOffsetMs(date: Date, timeZone: string) {
+  const parts = zonedParts(date, timeZone);
+  const localAsUtcMs = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
+  return localAsUtcMs - date.getTime();
+}
+
+function timeInputToZonedDate(value: string, baseIso: string, timeZone = pacificTimeZone) {
+  if (!value) {
+    return null;
+  }
+
+  const [hours = 0, minutes = 0, seconds = 0] = value.split(":").map(Number);
+  const baseParts = zonedParts(new Date(baseIso), timeZone);
+  const localAsUtcMs = Date.UTC(baseParts.year, baseParts.month - 1, baseParts.day, hours, minutes, seconds);
+  const firstPass = new Date(localAsUtcMs - timeZoneOffsetMs(new Date(localAsUtcMs), timeZone));
+  return new Date(localAsUtcMs - timeZoneOffsetMs(firstPass, timeZone));
+}
+
+function dateToTimeInput(date = new Date(), timeZone = pacificTimeZone) {
+  const parts = zonedParts(date, timeZone);
+  return `${padTimePart(parts.hour)}:${padTimePart(parts.minute)}`;
+}
+
+function formatClock(date: Date | null, timeZone = pacificTimeZone) {
+  if (!date) {
+    return "--:--:--";
+  }
+
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZone
+  });
+}
+
+function buildTargetSnapshot(timer: TargetTimer, nowIso: string, timeZone = pacificTimeZone) {
+  const nowMs = new Date(nowIso).getTime();
+  const targetMs = timer.targetMinutes * 60 * 1000;
+  const isAutoScheduledStart = timer.scheduledStartMode !== "manual";
+  const runningMs =
+    timer.status === "running" && timer.lastStartedAtUtc
+      ? Math.max(0, nowMs - new Date(timer.lastStartedAtUtc).getTime())
+      : 0;
+  const activeMs = timer.accumulatedMs + runningMs;
+  const pausedMs =
+    timer.status === "paused" && timer.pauseStartedAtUtc
+      ? Math.max(0, nowMs - new Date(timer.pauseStartedAtUtc).getTime())
+      : 0;
+  const remainingMs = targetMs - activeMs;
+  const scheduledStart =
+    isAutoScheduledStart && !timer.actualStartUtc
+      ? new Date(nowMs)
+      : timeInputToZonedDate(timer.scheduledStartTime, timer.actualStartUtc || nowIso, timeZone);
+  const plannedEnd = scheduledStart ? new Date(scheduledStart.getTime() + targetMs) : null;
+  const actualStart = timer.actualStartUtc ? new Date(timer.actualStartUtc) : null;
+  const completedAt = timer.completedAtUtc ? new Date(timer.completedAtUtc) : null;
+  const projectedEnd =
+    timer.status === "idle" && plannedEnd
+      ? plannedEnd
+      : timer.status === "complete"
+        ? completedAt || plannedEnd || new Date(nowMs)
+        : new Date(nowMs + remainingMs);
+  const slipMs = plannedEnd ? projectedEnd.getTime() - plannedEnd.getTime() : 0;
+
+  return {
+    targetMs,
+    activeMs,
+    pausedMs,
+    remainingMs,
+    scheduledStart,
+    plannedEnd,
+    actualStart,
+    completedAt,
+    projectedEnd,
+    slipMs,
+    isComplete: activeMs >= targetMs
+  };
+}
+
+function loadSelectedTimeZone(): TimeZoneValue {
+  const saved = localStorage.getItem(timeZoneKey);
+  return timeZoneOptions.some((option) => option.value === saved)
+    ? (saved as TimeZoneValue)
+    : "America/Los_Angeles";
 }
 
 function activeNoteCount(production: Production) {
@@ -110,7 +252,7 @@ function eventKind(eventType: string): QuickActionTone {
   if (normalized.includes("issue") || normalized.includes("flag") || normalized.includes("problem")) {
     return "issue";
   }
-  if (normalized.includes("timer")) {
+  if (normalized.includes("timer") || normalized.includes("program time")) {
     return "timer";
   }
   return "event";
@@ -129,6 +271,7 @@ function App() {
   const [customEvent, setCustomEvent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [nowMs, setNowMs] = useState(Date.now());
+  const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZoneValue>(loadSelectedTimeZone);
   const [fontChoice, setFontChoice] = useState<ExportFont>(() => {
     const stored = localStorage.getItem(fontStorageKey);
     return stored === "classic" || stored === "mono" || stored === "modern" ? stored : "modern";
@@ -153,9 +296,28 @@ function App() {
       });
   }, [activeProduction.noteLogs, searchQuery]);
 
-  const elapsedMs = timerElapsedMs(activeProduction.targetTimer, nowMs);
-  const targetMs = activeProduction.targetTimer.targetMinutes * 60 * 1000;
-  const targetProgress = targetMs > 0 ? Math.min(100, (elapsedMs / targetMs) * 100) : 0;
+  const nowIso = new Date(nowMs).toISOString();
+  const targetTimer = activeProduction.targetTimer;
+  const targetSnapshot = useMemo(
+    () => buildTargetSnapshot(targetTimer, nowIso, selectedTimeZone),
+    [nowIso, selectedTimeZone, targetTimer]
+  );
+  const targetOptions = targetMinuteOptions.includes(targetTimer.targetMinutes)
+    ? targetMinuteOptions
+    : [...targetMinuteOptions, targetTimer.targetMinutes].sort((a, b) => a - b);
+  const targetProgress =
+    targetSnapshot.targetMs > 0 ? Math.min(100, (targetSnapshot.activeMs / targetSnapshot.targetMs) * 100) : 0;
+  const visibleTime = formatClock(new Date(nowMs), selectedTimeZone);
+  const targetStatus =
+    targetTimer.status === "running" && targetSnapshot.remainingMs < 0
+      ? "Over program time"
+      : targetTimer.status === "complete"
+        ? "Program time reached"
+        : targetTimer.status === "running"
+          ? "Program time running"
+          : targetTimer.status === "paused"
+            ? "Program time paused"
+            : "Ready to start";
 
   useEffect(() => {
     const timer = window.setInterval(() => setNowMs(Date.now()), 1000);
@@ -178,6 +340,10 @@ function App() {
     document.documentElement.dataset.font = fontChoice;
     localStorage.setItem(fontStorageKey, fontChoice);
   }, [fontChoice]);
+
+  useEffect(() => {
+    localStorage.setItem(timeZoneKey, selectedTimeZone);
+  }, [selectedTimeZone]);
 
   function patchProduction(id: string, patch: Partial<Production>) {
     setProductions((current) =>
@@ -215,6 +381,26 @@ function App() {
     patchActiveProduction({
       noteLogs: [...activeProduction.noteLogs, note]
     });
+  }
+
+  function timerNote(eventType: string, text: string, utcIso: string): NoteLog {
+    const noteOperator = operatorName.trim() || "Program Clock";
+    return {
+      id: uid("note"),
+      eventType,
+      text,
+      operatorName: noteOperator,
+      utcIso,
+      history: [
+        {
+          id: uid("hist"),
+          action: "create",
+          operatorName: noteOperator,
+          utcIso,
+          nextText: text
+        }
+      ]
+    };
   }
 
   function createNote(eventType: string, text: string): NoteLog {
@@ -325,69 +511,41 @@ function App() {
     setActiveCode(remaining[0].code);
   }
 
-  function updateTimerStatus(action: "start" | "pause" | "complete" | "reset") {
-    const timer = activeProduction.targetTimer;
-    const now = nowUtcIso();
-    const currentElapsed = timerElapsedMs(timer);
+  function updateTimerWithNote(
+    updater: (timer: TargetTimer, utcIso: string) => { timer: TargetTimer; text: string; eventType: string }
+  ) {
+    const utcIso = nowUtcIso();
+    setProductions((current) =>
+      current.map((production) => {
+        if (production.id !== activeProduction.id) {
+          return production;
+        }
 
-    if (action === "start") {
-      const isResume = timer.status === "paused";
-      patchTimer({
-        ...timer,
-        status: "running",
-        actualStartUtc: timer.actualStartUtc || now,
-        lastStartedAtUtc: now,
-        pauseStartedAtUtc: undefined
-      });
-      addSystemNote(isResume ? "Timer Resumed" : "Timer Started", isResume ? "Timer resumed." : "Timer started.");
-      return;
-    }
-
-    if (action === "pause" && timer.status === "running") {
-      patchTimer({
-        ...timer,
-        status: "paused",
-        accumulatedMs: currentElapsed,
-        lastStartedAtUtc: undefined,
-        pauseStartedAtUtc: now,
-        pauseCount: timer.pauseCount + 1
-      });
-      addSystemNote("Timer Paused", "Timer paused.");
-      return;
-    }
-
-    if (action === "complete") {
-      patchTimer({
-        ...timer,
-        status: "complete",
-        accumulatedMs: currentElapsed,
-        lastStartedAtUtc: undefined,
-        completedAtUtc: now
-      });
-      addSystemNote("Timer Complete", `Timer completed at ${formatElapsed(currentElapsed)}.`);
-      return;
-    }
-
-    if (action === "reset") {
-      patchTimer({
-        ...timer,
-        status: "idle",
-        actualStartUtc: undefined,
-        completedAtUtc: undefined,
-        accumulatedMs: 0,
-        lastStartedAtUtc: undefined,
-        pauseStartedAtUtc: undefined,
-        pauseCount: 0
-      });
-      addSystemNote("Timer Reset", "Timer reset.");
-    }
+        const result = updater(production.targetTimer, utcIso);
+        const note = timerNote(result.eventType, result.text, utcIso);
+        const noteLogs = [...production.noteLogs, note];
+        return {
+          ...production,
+          targetTimer: result.timer,
+          noteLogs,
+          rosterNames: collectRosterNames({ ...production, noteLogs }),
+          updatedAtUtc: utcIso
+        };
+      })
+    );
   }
 
-  function updateTimerTarget(value: string) {
-    const minutes = Math.max(1, Number.parseInt(value, 10) || 1);
+  function updateTimerTarget(minutes: number) {
     patchTimer({
       ...activeProduction.targetTimer,
       targetMinutes: minutes
+    });
+  }
+
+  function addTargetMinutes(minutes: number) {
+    patchTimer({
+      ...activeProduction.targetTimer,
+      targetMinutes: Math.max(1, activeProduction.targetTimer.targetMinutes + minutes)
     });
   }
 
@@ -397,6 +555,144 @@ function App() {
       scheduledStartTime: value,
       scheduledStartMode: "manual"
     });
+  }
+
+  function startOrResumeProgramTime() {
+    updateTimerWithNote((timer, utcIso) => {
+      if (timer.status === "running") {
+        return {
+          timer,
+          eventType: "Program Time",
+          text: "Program time already running"
+        };
+      }
+
+      if (timer.status === "paused" && timer.pauseStartedAtUtc) {
+        const pauseMs = Math.max(0, new Date(utcIso).getTime() - new Date(timer.pauseStartedAtUtc).getTime());
+        const pauseCount = timer.pauseCount + 1;
+        return {
+          timer: {
+            ...timer,
+            status: "running",
+            lastStartedAtUtc: utcIso,
+            pauseStartedAtUtc: undefined,
+            pauseCount
+          },
+          eventType: "Program Time Resume",
+          text: `Program time resumed after pause #${pauseCount} (${formatDurationLong(pauseMs)})`
+        };
+      }
+
+      const isManualSchedule = timer.scheduledStartMode === "manual";
+      const scheduledStartTime =
+        isManualSchedule && timer.scheduledStartTime
+          ? timer.scheduledStartTime
+          : dateToTimeInput(new Date(utcIso), selectedTimeZone);
+      return {
+        timer: {
+          ...timer,
+          scheduledStartTime,
+          scheduledStartMode: isManualSchedule ? "manual" : "auto",
+          actualStartUtc: utcIso,
+          completedAtUtc: undefined,
+          status: "running",
+          accumulatedMs: 0,
+          lastStartedAtUtc: utcIso,
+          pauseStartedAtUtc: undefined,
+          pauseCount: 0
+        },
+        eventType: "Program Time Start",
+        text: `Program time started: ${timer.targetMinutes} minute target`
+      };
+    });
+  }
+
+  function pauseProgramTime() {
+    updateTimerWithNote((timer, utcIso) => {
+      const snapshot = buildTargetSnapshot(timer, utcIso, selectedTimeZone);
+      return {
+        timer: {
+          ...timer,
+          status: "paused",
+          accumulatedMs: snapshot.activeMs,
+          lastStartedAtUtc: undefined,
+          pauseStartedAtUtc: utcIso,
+          completedAtUtc: undefined
+        },
+        eventType: "Program Time Pause",
+        text: `Program time paused at ${formatDuration(snapshot.activeMs)} active, ${formatRemaining(snapshot.remainingMs)} remaining`
+      };
+    });
+  }
+
+  function completeProgramTime() {
+    updateTimerWithNote((timer, utcIso) => {
+      const snapshot = buildTargetSnapshot(timer, utcIso, selectedTimeZone);
+      return {
+        timer: {
+          ...timer,
+          status: "complete",
+          accumulatedMs: snapshot.activeMs,
+          lastStartedAtUtc: undefined,
+          pauseStartedAtUtc: undefined,
+          completedAtUtc: utcIso
+        },
+        eventType: "Program Time Complete",
+        text: `Program time completed at ${formatDuration(snapshot.activeMs)} active`
+      };
+    });
+  }
+
+  function resetProgramTime() {
+    if (!window.confirm("Reset the program clock for this session?")) {
+      return;
+    }
+
+    updateTimerWithNote((timer, utcIso) => ({
+      timer: {
+        targetMinutes: timer.targetMinutes,
+        scheduledStartTime: dateToTimeInput(new Date(utcIso), selectedTimeZone),
+        scheduledStartMode: "auto",
+        status: "idle",
+        accumulatedMs: 0,
+        pauseCount: 0
+      },
+      eventType: "Program Time Reset",
+      text: "Program time reset"
+    }));
+  }
+
+  function recordStart() {
+    addNote("Record Start", "Record started");
+  }
+
+  function recordStop() {
+    const utcIso = nowUtcIso();
+    setProductions((current) =>
+      current.map((production) => {
+        if (production.id !== activeProduction.id) {
+          return production;
+        }
+
+        const recordStartNote = [...production.noteLogs]
+          .filter((note) => note.eventType === "Record Start" && !note.deletedAtUtc)
+          .sort((a, b) => b.utcIso.localeCompare(a.utcIso))[0];
+        const durationText = recordStartNote
+          ? formatDurationLong(Math.max(0, new Date(utcIso).getTime() - new Date(recordStartNote.utcIso).getTime()))
+          : production.studioDuration;
+        const text = recordStartNote ? `Record stopped after ${durationText}` : "Record Stop logged without a Record Start";
+        const note = timerNote("Record Stop", text, utcIso);
+        const noteLogs = [...production.noteLogs, note];
+
+        return {
+          ...production,
+          studioDuration: recordStartNote ? durationText : production.studioDuration,
+          noteLogs,
+          rosterNames: collectRosterNames({ ...production, noteLogs }),
+          updatedAtUtc: utcIso
+        };
+      })
+    );
   }
 
   const exportOptions = { font: fontChoice };
@@ -497,50 +793,108 @@ function App() {
               <div className="timer-panel">
                 <div className="panel-heading">
                   <div>
-                    <p className="section-kicker">Run clock</p>
-                    <h2>{timerStatusLabel(activeProduction.targetTimer)}</h2>
+                    <p className="section-kicker">Current time</p>
+                    <h2>{visibleTime}</h2>
                   </div>
-                  <span className="status-pill">{formatElapsed(elapsedMs)}</span>
+                  <span className={`status-pill timer-state ${targetTimer.status}`}>{targetStatus}</span>
                 </div>
                 <div className="timer-track" aria-label="Timer progress">
                   <span style={{ width: `${targetProgress}%` }} />
                 </div>
+                <div className="clock-strip">
+                  <div>
+                    <span>Projected end</span>
+                    <strong>{formatClock(targetSnapshot.projectedEnd, selectedTimeZone)}</strong>
+                  </div>
+                  <label>
+                    Time zone
+                    <select
+                      value={selectedTimeZone}
+                      onChange={(event) => setSelectedTimeZone(event.target.value as TimeZoneValue)}
+                    >
+                      {timeZoneOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
                 <div className="timer-meta">
                   <label>
-                    Target minutes
-                    <input
-                      type="number"
-                      min="1"
-                      value={activeProduction.targetTimer.targetMinutes}
-                      onChange={(event) => updateTimerTarget(event.target.value)}
-                    />
+                    Program time
+                    <select value={targetTimer.targetMinutes} onChange={(event) => updateTimerTarget(Number(event.target.value))}>
+                      {targetOptions.map((minutes) => (
+                        <option key={minutes} value={minutes}>
+                          {minutes} min
+                        </option>
+                      ))}
+                    </select>
                   </label>
                   <label>
                     Scheduled start
                     <input
                       type="time"
-                      value={activeProduction.targetTimer.scheduledStartTime}
+                      value={targetTimer.scheduledStartTime}
                       onChange={(event) => updateTimerStart(event.target.value)}
                     />
                   </label>
                 </div>
                 <div className="timer-actions">
-                  <button type="button" onClick={() => updateTimerStatus("start")}>
-                    <Play size={17} aria-hidden="true" />
-                    Start
+                  <button className="timer-step" type="button" onClick={recordStart}>
+                    <span className="timer-step-number">1</span>
+                    <Radio size={17} aria-hidden="true" />
+                    Record Start
                   </button>
-                  <button type="button" onClick={() => updateTimerStatus("pause")}>
-                    <Pause size={17} aria-hidden="true" />
-                    Pause
+                  <button
+                    className={`timer-step program-step ${targetTimer.status === "running" ? "pause" : "start"}`}
+                    type="button"
+                    onClick={targetTimer.status === "running" ? pauseProgramTime : startOrResumeProgramTime}
+                  >
+                    <span className="timer-step-number">2</span>
+                    {targetTimer.status === "running" ? (
+                      <PauseCircle size={17} aria-hidden="true" />
+                    ) : (
+                      <PlayCircle size={17} aria-hidden="true" />
+                    )}
+                    {targetTimer.status === "running"
+                      ? "Program Pause"
+                      : targetTimer.status === "paused"
+                        ? "Program Resume"
+                        : "Program Start"}
                   </button>
-                  <button type="button" onClick={() => updateTimerStatus("complete")}>
+                  <button className="timer-step" type="button" onClick={recordStop}>
+                    <span className="timer-step-number">3</span>
+                    <Square size={17} aria-hidden="true" />
+                    Record Stop
+                  </button>
+                  <button type="button" onClick={completeProgramTime}>
                     <CheckCircle2 size={17} aria-hidden="true" />
                     Complete
                   </button>
-                  <button type="button" onClick={() => updateTimerStatus("reset")}>
-                    <TimerReset size={17} aria-hidden="true" />
+                  <button type="button" onClick={resetProgramTime}>
+                    <RotateCcw size={17} aria-hidden="true" />
                     Reset
                   </button>
+                </div>
+                <div className="time-adders" aria-label="Add program time">
+                  <button type="button" onClick={() => addTargetMinutes(1)}>
+                    +1 min
+                  </button>
+                </div>
+                <div className="target-stat-grid">
+                  <div>
+                    <span>Remaining</span>
+                    <strong>{formatRemaining(targetSnapshot.remainingMs)}</strong>
+                  </div>
+                  <div>
+                    <span>Active</span>
+                    <strong>{formatDuration(targetSnapshot.activeMs)}</strong>
+                  </div>
+                  <div>
+                    <span>Program ends</span>
+                    <strong>{formatClock(targetSnapshot.plannedEnd, selectedTimeZone)}</strong>
+                  </div>
                 </div>
               </div>
 
@@ -809,7 +1163,7 @@ function App() {
                   </div>
                   <div>
                     <dt>Elapsed</dt>
-                    <dd>{formatElapsed(elapsedMs)}</dd>
+                    <dd>{formatDuration(targetSnapshot.activeMs)}</dd>
                   </div>
                   <div>
                     <dt>Updated</dt>

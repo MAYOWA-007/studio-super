@@ -136,6 +136,8 @@ h2 {
 .operator-field input,
 .field-grid input,
 .timer-meta input,
+.timer-meta select,
+.clock-strip select,
 .composer-row input,
 .composer-row textarea,
 .long-fields textarea,
@@ -150,6 +152,8 @@ h2 {
 .operator-field input,
 .field-grid input,
 .timer-meta input,
+.timer-meta select,
+.clock-strip select,
 .composer-row input,
 .search-field input {
   min-height: 40px;
@@ -362,6 +366,67 @@ h2 {
   transition: width 180ms ease;
 }
 
+.timer-state.running {
+  border-color: rgba(95, 196, 141, 0.5);
+  color: #dff9eb;
+}
+
+.timer-state.paused {
+  border-color: rgba(202, 163, 77, 0.62);
+  color: #f6e5b8;
+}
+
+.timer-state.complete {
+  border-color: rgba(112, 198, 208, 0.62);
+  color: #d8f8fb;
+}
+
+.clock-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(130px, 150px);
+  gap: 10px;
+  align-items: end;
+}
+
+.clock-strip > div,
+.target-stat-grid div {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #090d12;
+}
+
+.clock-strip > div {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+}
+
+.clock-strip span,
+.target-stat-grid span {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.clock-strip strong,
+.target-stat-grid strong {
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.clock-strip label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
 .timer-meta,
 .field-grid {
   display: grid;
@@ -391,6 +456,58 @@ h2 {
 .export-actions button {
   min-height: 44px;
   padding: 0 12px;
+}
+
+.timer-step {
+  position: relative;
+}
+
+.timer-step-number {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #090d12;
+  color: var(--gold);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.program-step.start {
+  border-color: rgba(95, 196, 141, 0.65);
+}
+
+.program-step.pause {
+  border-color: rgba(225, 6, 0, 0.68);
+}
+
+.time-adders {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.time-adders button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(202, 163, 77, 0.5);
+  border-radius: 999px;
+  background: rgba(202, 163, 77, 0.12);
+  color: var(--paper);
+  font-weight: 900;
+}
+
+.target-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.target-stat-grid div {
+  display: grid;
+  gap: 5px;
+  padding: 11px;
 }
 
 .note-composer {
@@ -683,8 +800,10 @@ h2 {
 
   .session-list,
   .quick-grid,
+  .clock-strip,
   .timer-meta,
   .timer-actions,
+  .target-stat-grid,
   .field-grid,
   .long-fields,
   .export-actions,
