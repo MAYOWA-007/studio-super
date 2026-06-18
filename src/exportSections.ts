@@ -13,7 +13,7 @@ export interface ExportNoteRow {
   operatorName: string;
 }
 
-const hiddenSystemEvents = new Set(["Target Time Reset", "Target Time"]);
+const hiddenSystemEvents = new Set(["Target Time Reset", "Target Time", "Target Duration Reset", "Target Duration"]);
 
 function chronologicalNotes(production: Production) {
   return [...production.noteLogs].sort((a, b) => a.utcIso.localeCompare(b.utcIso));

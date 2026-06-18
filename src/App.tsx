@@ -40,6 +40,7 @@ import {
   loadActiveCode,
   loadOperatorName,
   loadProductions,
+  normalizeCode,
   saveActiveCode,
   saveOperatorName,
   saveProductions,
@@ -542,6 +543,65 @@ function rankNames(names: string[], query: string) {
     .slice(0, 8);
 }
 
+function shortNameBase(input: string, fallback = "production") {
+  const normalized = input
+    .trim()
+    .toLowerCase()
+    .replace(/['’]/g, "")
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 40);
+
+  return normalized || fallback;
+}
+
+function removeSequenceSuffix(input: string) {
+  return input.replace(/(?:_|-)\d+$/u, "") || input;
+}
+
+function sequenceTitle(title: string, sequence: number) {
+  const trimmed = title.trim();
+  if (!trimmed || sequence <= 1) {
+    return trimmed;
+  }
+
+  return `${trimmed.replace(/\s+\d+$/u, "")} ${sequence}`;
+}
+
+function nextProductionIdentity(
+  productions: Production[],
+  titleInput: string,
+  shortSeedInput?: string
+) {
+  const baseShortName = removeSequenceSuffix(shortNameBase(shortSeedInput || titleInput));
+  const usedShortNames = new Set(productions.map((production) => production.shortName.trim().toLowerCase()).filter(Boolean));
+  const usedCodes = new Set(productions.map((production) => production.code.trim().toLowerCase()).filter(Boolean));
+  let sequence = 1;
+  let shortName = baseShortName;
+
+  while (usedShortNames.has(shortName.toLowerCase())) {
+    sequence += 1;
+    shortName = `${baseShortName}_${sequence}`;
+  }
+
+  const baseCode = normalizeCode(shortName.replace(/_/g, "-")) || "production";
+  let code = baseCode;
+  let codeSequence = sequence;
+
+  while (usedCodes.has(code)) {
+    codeSequence += 1;
+    code = `${baseCode}-${codeSequence}`;
+  }
+
+  return {
+    code,
+    shortName,
+    title: sequenceTitle(titleInput, sequence)
+  };
+}
+
 interface NameAutocompleteProps {
   label: string;
   value: string;
@@ -726,9 +786,9 @@ function App() {
       : targetTimer.scheduledStartTime;
   const targetStatus =
     targetTimer.status === "running" && targetSnapshot.remainingMs < 0
-      ? "Over target time"
+      ? "Over target duration"
       : targetTimer.status === "complete"
-      ? "Target time reached"
+      ? "Target duration reached"
       : targetTimer.status === "running"
         ? "Running"
         : targetTimer.status === "paused"
@@ -1111,8 +1171,8 @@ function App() {
       if (timer.status === "running") {
         return {
           timer,
-          eventType: "Target Time",
-          text: "Target time already running"
+          eventType: "Target Duration",
+          text: "Target duration already running"
         };
       }
 
@@ -1126,10 +1186,10 @@ function App() {
             lastStartedAtUtc: utcIso,
             pauseStartedAtUtc: undefined,
             pauseCount
-          },
-          eventType: "Target Time Resume",
-          text: `Target time resumed after pause #${pauseCount} (${formatDurationLong(pauseMs)})`
-        };
+        },
+        eventType: "Target Duration Resume",
+        text: `Target duration resumed after pause #${pauseCount} (${formatDurationLong(pauseMs)})`
+      };
       }
 
       const isManualSchedule = timer.scheduledStartMode === "manual";
@@ -1150,8 +1210,8 @@ function App() {
           pauseStartedAtUtc: undefined,
           pauseCount: 0
         },
-        eventType: "Target Time Start",
-        text: `Target time started: ${timer.targetMinutes} minute target`
+        eventType: "Target Duration Start",
+        text: `Target duration started: ${timer.targetMinutes} minute target`
       };
     });
   }
@@ -1168,14 +1228,14 @@ function App() {
           pauseStartedAtUtc: utcIso,
           completedAtUtc: undefined
         },
-        eventType: "Target Time Pause",
-        text: `Target time paused at ${formatDuration(snapshot.activeMs)} active, ${formatRemaining(snapshot.remainingMs)} remaining`
+        eventType: "Target Duration Pause",
+        text: `Target duration paused at ${formatDuration(snapshot.activeMs)} active, ${formatRemaining(snapshot.remainingMs)} remaining`
       };
     });
   }
 
   function resetTargetTimer() {
-    if (!window.confirm("Reset the target timer for this production?")) {
+    if (!window.confirm("Are you sure you want to reset the target duration for this production?")) {
       return;
     }
 
@@ -1187,8 +1247,8 @@ function App() {
         scheduledStartMode: "auto",
         completedAtUtc: undefined
       },
-      eventType: "Target Time Reset",
-      text: "Target time reset"
+      eventType: "Target Duration Reset",
+      text: "Target duration reset"
     }));
   }
 
@@ -1208,10 +1268,11 @@ function App() {
     }
 
     const title = startupProductionTitle.trim();
-    const sessionSeed = title || `session-${Date.now().toString(36)}`;
+    const identity = nextProductionIdentity(productionsRef.current, title, title);
     const created = {
-      ...createBlankProduction(`${sessionSeed}-${Date.now().toString(36)}`, title),
-      title
+      ...createBlankProduction(identity.code, identity.title),
+      title: identity.title,
+      shortName: identity.shortName
     };
 
     const nextProductions = [
@@ -1243,20 +1304,26 @@ function App() {
   }
 
   function restartDashboard() {
-    const confirmed = window.confirm("Start a fresh blank Studio Super session? Previous productions stay saved in Rooms.");
+    const confirmed = window.confirm(
+      "Are you sure you want to restart? This creates a fresh Production Room. Previous rooms stay saved on this device."
+    );
     if (!confirmed) {
       return;
     }
 
     const previous = activeProduction;
-    const seed = previous?.shortName || previous?.title || `session-${Date.now().toString(36)}`;
+    const identity = nextProductionIdentity(
+      productionsRef.current,
+      previous?.title || "",
+      previous?.shortName || previous?.title || "production"
+    );
+    const blank = createBlankProduction(identity.code, identity.title);
     const created = {
-      ...createBlankProduction(`${seed}-${Date.now().toString(36)}`, previous?.title || ""),
-      title: previous?.title || "",
-      shortName: previous?.shortName || seed,
-      sessionDate: previous?.sessionDate || createBlankProduction("date-seed").sessionDate,
-      recordingPath: previous?.recordingPath || defaultRecordingPath,
-      crew: previous?.crew ? { ...previous.crew } : createBlankProduction("crew-seed").crew,
+      ...blank,
+      title: identity.title,
+      shortName: identity.shortName,
+      recordingPath: previous?.recordingPath || blank.recordingPath,
+      crew: previous?.crew ? { ...previous.crew } : blank.crew,
       rosterNames: previous?.rosterNames ? [...previous.rosterNames] : []
     };
     const nextProductions = [
@@ -1283,12 +1350,18 @@ function App() {
   }
 
   function openOrCreateProduction() {
-    const code = joinCode.trim();
-    if (!code) {
+    const requestedName = joinCode.trim();
+    if (!requestedName) {
       return;
     }
 
-    const existing = productions.find((production) => production.code === code.toLowerCase());
+    const requestedCode = normalizeCode(requestedName);
+    const requestedShortName = shortNameBase(requestedName);
+    const existing = productions.find(
+      (production) =>
+        production.code === requestedCode ||
+        production.shortName.trim().toLowerCase() === requestedShortName.toLowerCase()
+    );
     if (existing) {
       markLocalSessionChoice();
       setActiveProductionCode(existing.code);
@@ -1297,7 +1370,12 @@ function App() {
       return;
     }
 
-    const created = createBlankProduction(code, joinTitle);
+    const identity = nextProductionIdentity(productionsRef.current, joinTitle.trim(), requestedName);
+    const created = {
+      ...createBlankProduction(identity.code, identity.title),
+      title: identity.title || joinTitle.trim(),
+      shortName: identity.shortName
+    };
     const nextProductions = [...productionsRef.current, created];
     markLocalSessionChoice();
     productionsRef.current = nextProductions;
@@ -1692,6 +1770,8 @@ function App() {
 
   const liveNoteCount = activeProduction.noteLogs.filter((note) => !note.deletedAtUtc).length;
   const visibleTime = formatZonedTime(nowIso, selectedTimeZone);
+  const sessionIndicatorLabel = recordControlState === "recording" ? "Recording" : targetStatus;
+  const sessionIndicatorTitle = `${sessionIndicatorLabel}. ${recordControlCaption}.`;
 
   return (
     <div className="app-shell v4-shell">
@@ -1812,6 +1892,16 @@ function App() {
           </button>
         </div>
         <div className="topbar-actions">
+          {operatorName ? (
+            <div
+              className={`session-status-chip status-${targetTimer.status} record-${recordControlState}`}
+              aria-live="polite"
+              title={sessionIndicatorTitle}
+            >
+              <span className="session-record-dot" aria-hidden="true" />
+              <span>{sessionIndicatorLabel}</span>
+            </div>
+          ) : null}
           <button className="app-reset-button" onClick={restartDashboard} title="Restart Studio Super">
             <RotateCcw size={16} />
             Restart
@@ -1953,7 +2043,6 @@ function App() {
                   <p className="panel-kicker">Current Time</p>
                   <h2>{visibleTime}</h2>
                 </div>
-                <span className={`target-status status-${targetTimer.status}`}>{targetStatus}</span>
               </div>
 
               <div className="v4-clock-strip">
@@ -1976,7 +2065,7 @@ function App() {
 
               <div className="target-controls v4-target-controls">
                 <label>
-                  Target Time
+                  Target Duration
                   <select value={targetTimer.targetMinutes} onChange={(event) => setTargetMinutes(Number(event.target.value))}>
                     {targetOptions.map((minutes) => (
                       <option key={minutes} value={minutes}>
@@ -2005,15 +2094,15 @@ function App() {
                   >
                     <span className="timer-step-number">2</span>
                     {targetTimer.status === "running" ? <PauseCircle size={18} /> : <PlayCircle size={18} />}
-                    {targetTimer.status === "running" ? "Target Pause" : targetTimer.status === "paused" ? "Target Resume" : "Target Start"}
+                    {targetTimer.status === "running" ? "Pause Target" : targetTimer.status === "paused" ? "Resume Target" : "Start Target"}
                   </button>
-                  <button className="target-reset" onClick={resetTargetTimer} title="Reset target time">
+                  <button className="target-reset" onClick={resetTargetTimer} title="Reset target duration">
                     <RotateCcw size={18} />
                   </button>
                 </div>
               </div>
 
-              <div className="v4-time-adders" aria-label="Add target time">
+              <div className="v4-time-adders" aria-label="Add target duration">
                 <button onClick={() => addTargetMinutes(1)}>+1 min</button>
               </div>
 

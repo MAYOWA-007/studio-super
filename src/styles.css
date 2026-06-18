@@ -6305,3 +6305,284 @@ html[data-theme][data-mode] .v4-shell .timer-step-record-recording strong,
 html[data-theme][data-mode] .v4-shell .timer-step-record-recording span {
   color: var(--on-danger-fill) !important;
 }
+
+/* v13 UX guard: session status placement, overflow safety, and light-mode readability. */
+html[data-theme][data-mode] .v4-shell {
+  overflow-x: hidden;
+}
+
+html[data-theme][data-mode] .v4-shell .topbar-actions {
+  grid-template-columns:
+    minmax(92px, 0.42fr)
+    minmax(90px, 0.36fr)
+    minmax(132px, 0.58fr)
+    minmax(142px, 0.64fr) !important;
+}
+
+html[data-theme][data-mode] .session-status-chip {
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel-strong) 88%, var(--bg)) !important;
+  color: var(--text) !important;
+  font-size: 0.78rem;
+  font-weight: 950;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+html[data-theme][data-mode] .v4-shell .app-reset-button,
+html[data-theme][data-mode] .v4-shell .design-menu-trigger,
+html[data-theme][data-mode] .v4-shell .operator-chip {
+  background: color-mix(in srgb, var(--panel-strong) 88%, var(--bg)) !important;
+  border-color: var(--line) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .app-reset-button svg,
+html[data-theme][data-mode] .v4-shell .design-menu-trigger svg,
+html[data-theme][data-mode] .v4-shell .operator-chip svg {
+  color: currentColor !important;
+}
+
+html[data-theme][data-mode] .v4-shell .design-menu-trigger span,
+html[data-theme][data-mode] .v4-shell .design-menu-trigger small {
+  color: currentColor !important;
+}
+
+html[data-theme][data-mode] .session-status-chip > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html[data-theme][data-mode] .session-record-dot {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border: 2px solid color-mix(in srgb, var(--text) 72%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel) 70%, var(--bg));
+}
+
+html[data-theme][data-mode] .session-status-chip.record-recording {
+  border-color: color-mix(in srgb, var(--danger-fill) 78%, #ffffff);
+  background: color-mix(in srgb, var(--danger-fill) 18%, var(--panel-strong)) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme][data-mode] .session-status-chip.record-recording .session-record-dot {
+  border-color: var(--on-danger-fill);
+  background: var(--danger-fill);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--danger-fill) 24%, transparent),
+    0 0 20px color-mix(in srgb, var(--danger-fill) 76%, transparent);
+  animation: recordBreathFinal 1.55s ease-in-out infinite;
+}
+
+html[data-theme][data-mode] .target-panel .v4-card-head {
+  grid-template-columns: minmax(0, 1fr) !important;
+  text-align: center;
+}
+
+html[data-theme][data-mode] .target-panel .v4-card-head > div {
+  width: 100%;
+}
+
+html[data-theme][data-mode] .v4-shell button,
+html[data-theme][data-mode] .v4-shell .event-button span,
+html[data-theme][data-mode] .v4-shell .timer-step-label,
+html[data-theme][data-mode] .v4-shell .target-action,
+html[data-theme][data-mode] .v4-shell .quick-button-list label,
+html[data-theme][data-mode] .v4-shell .quick-editor-panel .v4-join-panel {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+html[data-theme][data-mode] .v4-shell button {
+  white-space: normal;
+}
+
+html[data-theme][data-mode] .v4-shell .timer-step-label {
+  display: grid;
+  gap: 2px;
+  line-height: 1.05;
+}
+
+html[data-theme][data-mode] .v4-shell .timer-step-label strong,
+html[data-theme][data-mode] .v4-shell .timer-step-label small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-clock-strip strong,
+html[data-theme][data-mode] .v4-shell .target-stat-grid strong {
+  min-width: 0;
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+}
+
+html[data-theme][data-mode] .v4-shell .design-menu-panel {
+  right: max(8px, env(safe-area-inset-right)) !important;
+  left: auto !important;
+  width: min(520px, calc(100vw - 16px)) !important;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - 84px) !important;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+}
+
+html[data-theme][data-mode] .v4-shell .name-combobox-shell {
+  position: relative;
+}
+
+html[data-theme][data-mode] .v4-shell .name-menu {
+  width: min(320px, calc(100vw - 16px));
+  max-width: calc(100vw - 16px);
+  max-height: min(320px, calc(100dvh - 96px));
+  overflow: auto;
+  overscroll-behavior: contain;
+  z-index: 140;
+}
+
+html[data-theme][data-mode] .v4-shell .operator-chip .name-menu {
+  position: fixed;
+  top: 58px;
+  right: max(8px, env(safe-area-inset-right));
+  left: auto;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-production-page {
+  min-width: 0;
+  align-items: start;
+  overflow: auto;
+}
+
+html[data-theme][data-mode] .v4-shell .quick-button-settings {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+html[data-theme][data-mode] .v4-shell .quick-button-settings .v4-card-head > svg {
+  flex: 0 0 auto;
+}
+
+html[data-theme][data-mode] .v4-shell .quick-editor-panel {
+  max-height: min(68dvh, 660px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+html[data-theme][data-mode] .v4-shell .quick-editor-panel .quick-button-list {
+  grid-template-rows: none !important;
+  grid-auto-rows: minmax(40px, auto) !important;
+  max-height: min(48dvh, 480px);
+  overflow: auto;
+}
+
+html[data-theme][data-mode] .v4-shell .quick-editor-panel .quick-button-list label {
+  grid-template-columns: minmax(168px, 1fr) minmax(108px, 0.42fr) minmax(40px, auto) !important;
+  align-items: center;
+}
+
+html[data-theme][data-mode] .v4-shell .quick-editor-panel .quick-button-list input,
+html[data-theme][data-mode] .v4-shell .quick-editor-panel .quick-button-list select {
+  background: var(--app-input-bg) !important;
+  color: var(--text) !important;
+  min-height: 40px;
+}
+
+html[data-theme][data-mode] .v4-shell .quick-editor-panel .quick-button-list button {
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+}
+
+html[data-theme][data-mode] .v4-shell .quick-editor-panel .v4-join-panel {
+  grid-template-columns: minmax(168px, 1fr) minmax(118px, 0.45fr) minmax(72px, auto) minmax(82px, auto) !important;
+}
+
+html[data-mode="light"] .v4-shell .quick-editor-toggle,
+html[data-mode="light"] .v4-shell .mobile-panel-switcher button,
+html[data-mode="light"] .v4-shell .quick-button-group-title,
+html[data-mode="light"] .v4-shell .v4-clock-strip strong,
+html[data-mode="light"] .v4-shell .target-stat-grid strong,
+html[data-mode="light"] .v4-shell .v4-card-head h2,
+html[data-mode="light"] .v4-shell .header-meta span,
+html[data-mode="light"] .v4-shell .production-item span {
+  color: var(--text) !important;
+}
+
+html[data-mode="light"] .v4-shell .quick-editor-toggle,
+html[data-mode="light"] .v4-shell .mobile-panel-switcher button {
+  background: color-mix(in srgb, var(--panel-strong) 72%, #ffffff) !important;
+  border-color: var(--line) !important;
+}
+
+@media (max-width: 1180px) {
+  html[data-theme][data-mode] .v4-shell .v4-production-page {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .topbar-actions {
+    grid-template-columns:
+      minmax(78px, 0.32fr)
+      minmax(80px, 0.3fr)
+      minmax(112px, 0.48fr)
+      minmax(132px, 0.56fr) !important;
+  }
+}
+
+@media (max-width: 860px) {
+  html[data-theme][data-mode] .v4-shell .topbar-actions {
+    grid-column: 1 / -1 !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .session-status-chip,
+  html[data-theme][data-mode] .v4-shell .app-reset-button,
+  html[data-theme][data-mode] .v4-shell .design-menu-trigger,
+  html[data-theme][data-mode] .v4-shell .operator-chip {
+    min-height: 42px !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .operator-chip .name-menu {
+    top: 164px;
+  }
+}
+
+@media (max-width: 620px) {
+  html[data-theme][data-mode] .v4-shell .quick-editor-panel .quick-button-list label,
+  html[data-theme][data-mode] .v4-shell .quick-editor-panel .v4-join-panel {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .quick-editor-panel .quick-button-list button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 460px) {
+  html[data-theme][data-mode] .v4-shell .topbar-actions {
+    grid-template-columns: minmax(42px, 0.28fr) minmax(58px, 0.34fr) minmax(58px, 0.34fr) minmax(112px, 0.7fr) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .session-status-chip {
+    padding: 0;
+  }
+
+  html[data-theme][data-mode] .v4-shell .session-status-chip > span:last-child {
+    display: none;
+  }
+}
