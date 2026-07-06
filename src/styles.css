@@ -6832,11 +6832,15 @@ html[data-mode="light"] .v4-shell .mobile-panel-switcher button {
   }
 
   html[data-theme][data-mode] .v4-shell .topbar-actions {
-    grid-template-columns: minmax(46px, 0.22fr) minmax(70px, 0.32fr) minmax(70px, 0.32fr) minmax(118px, 0.78fr) !important;
+    grid-template-columns: 46px minmax(86px, 0.92fr) 48px minmax(96px, 1.08fr) !important;
   }
 
   html[data-theme][data-mode] .v4-shell .session-status-chip {
     padding: 0 !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .app-reset-button {
+    white-space: nowrap;
   }
 
   html[data-theme][data-mode] .v4-shell .session-status-chip > span:last-child {
@@ -7052,5 +7056,251 @@ html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel .quic
 
   html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel .v4-join-panel {
     flex: 0 0 auto !important;
+  }
+}
+
+/* v16 readability and ergonomics guard: shared contrast logic for every theme and mode. */
+html[data-theme][data-mode] {
+  --readable-text: var(--text);
+  --readable-muted: color-mix(in srgb, var(--text) 94%, var(--bg));
+  --readable-soft: color-mix(in srgb, var(--text) 86%, var(--bg));
+  --readable-hairline: color-mix(in srgb, var(--line-strong) 80%, var(--text) 8%);
+  --readable-focus: color-mix(in srgb, var(--accent-live) 82%, var(--text) 18%);
+  --readable-surface: color-mix(in srgb, var(--panel) 94%, var(--bg));
+  --readable-surface-strong: color-mix(in srgb, var(--panel-strong) 92%, var(--bg));
+  --readable-surface-soft: color-mix(in srgb, var(--panel-soft) 82%, var(--panel));
+  --readable-input-surface: color-mix(in srgb, var(--panel) 90%, var(--bg));
+  --readable-control-surface: color-mix(in srgb, var(--panel-strong) 88%, var(--bg));
+  --readable-control-hover: color-mix(in srgb, var(--accent-live) 13%, var(--panel-strong));
+  --readable-accent-soft: color-mix(in srgb, var(--accent-live) 13%, var(--panel));
+}
+
+html[data-mode="dark"] {
+  --readable-input-surface: color-mix(in srgb, var(--panel-strong) 86%, #000000);
+  --readable-control-surface: color-mix(in srgb, var(--panel-strong) 90%, #000000);
+}
+
+html[data-mode="light"] {
+  --readable-input-surface: color-mix(in srgb, var(--panel) 84%, #ffffff);
+  --readable-control-surface: color-mix(in srgb, var(--panel-strong) 80%, #ffffff);
+  --readable-control-hover: color-mix(in srgb, var(--accent-live) 10%, #ffffff);
+}
+
+html[data-theme][data-mode],
+html[data-theme][data-mode] body,
+html[data-theme][data-mode] .app-shell,
+html[data-theme][data-mode] .v4-shell {
+  color: var(--readable-text) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-card,
+html[data-theme][data-mode] .startup-card,
+html[data-theme][data-mode] .design-menu-panel,
+html[data-theme][data-mode] .name-menu,
+html[data-theme][data-mode] .quick-editor-panel,
+html[data-theme][data-mode] .quick-button-drawer,
+html[data-theme][data-mode] .v4-tabs,
+html[data-theme][data-mode] .v4-clock-strip,
+html[data-theme][data-mode] .v4-stat,
+html[data-theme][data-mode] .v4-projected-end,
+html[data-theme][data-mode] .v4-timeline-list > .note-card,
+html[data-theme][data-mode] .local-storage-note,
+html[data-theme][data-mode] .design-menu-note {
+  border-color: var(--readable-hairline) !important;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--readable-surface-strong) 82%, transparent), var(--readable-surface)),
+    var(--readable-surface) !important;
+  color: var(--readable-text) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-topbar,
+html[data-theme][data-mode] .session-status-chip,
+html[data-theme][data-mode] .v4-shell .app-reset-button,
+html[data-theme][data-mode] .v4-shell .design-menu-trigger,
+html[data-theme][data-mode] .v4-shell .operator-chip,
+html[data-theme][data-mode] .v4-shell .quick-editor-toggle,
+html[data-theme][data-mode] .v4-shell .mobile-panel-switcher button,
+html[data-theme][data-mode] .v4-shell .note-actions button,
+html[data-theme][data-mode] .v4-shell .timer-step,
+html[data-theme][data-mode] .v4-shell .event-button,
+html[data-theme][data-mode] .v4-shell .join-panel button,
+html[data-theme][data-mode] .v4-shell .v4-join-panel button,
+html[data-theme][data-mode] .theme-preset-button,
+html[data-theme][data-mode] .design-mode-toggle button,
+html[data-theme][data-mode] .accent-choice-grid button,
+html[data-theme][data-mode] .production-item,
+html[data-theme][data-mode] .production-delete-button {
+  border-color: var(--readable-hairline) !important;
+  background: var(--readable-control-surface) !important;
+  color: var(--readable-text) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-tabs button,
+html[data-theme][data-mode] .v4-shell .mobile-panel-switcher button,
+html[data-theme][data-mode] .v4-shell .app-reset-button,
+html[data-theme][data-mode] .v4-shell .design-menu-trigger,
+html[data-theme][data-mode] .v4-shell .operator-chip,
+html[data-theme][data-mode] .v4-shell .event-button,
+html[data-theme][data-mode] .v4-shell .timer-step,
+html[data-theme][data-mode] .theme-preset-button,
+html[data-theme][data-mode] .design-mode-toggle button,
+html[data-theme][data-mode] .accent-choice-grid button,
+html[data-theme][data-mode] .production-item {
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease !important;
+}
+
+html[data-theme][data-mode] .v4-shell .target-stat-grid div,
+html[data-theme][data-mode] .v4-shell .v4-stat,
+html[data-theme][data-mode] .v4-shell .header-meta span {
+  border-color: var(--readable-hairline) !important;
+  background: var(--readable-input-surface) !important;
+  color: var(--readable-text) !important;
+}
+
+html[data-theme][data-mode] .v4-shell button:hover,
+html[data-theme][data-mode] .theme-preset-button:hover,
+html[data-theme][data-mode] .production-item-row:hover .production-item,
+html[data-theme][data-mode] .production-item-row.active .production-item {
+  border-color: color-mix(in srgb, var(--accent-live) 62%, var(--line)) !important;
+  background: var(--readable-control-hover) !important;
+  color: var(--readable-text) !important;
+}
+
+html[data-theme][data-mode] .v4-title-input,
+html[data-theme][data-mode] input,
+html[data-theme][data-mode] select,
+html[data-theme][data-mode] textarea,
+html[data-theme][data-mode] .search-field,
+html[data-theme][data-mode] .join-panel,
+html[data-theme][data-mode] .quick-editor-panel .quick-button-list label,
+html[data-theme][data-mode] .v4-shell .quick-editor-panel .v4-join-panel {
+  border-color: var(--readable-hairline) !important;
+  background: var(--readable-input-surface) !important;
+  color: var(--readable-text) !important;
+}
+
+html[data-theme][data-mode] select option {
+  background: var(--panel) !important;
+  color: var(--readable-text) !important;
+}
+
+html[data-theme][data-mode] input::placeholder,
+html[data-theme][data-mode] textarea::placeholder {
+  color: var(--readable-soft) !important;
+  opacity: 1;
+}
+
+html[data-theme][data-mode] .v4-shell :where(h1, h2, h3, h4, .v4-card-head h2, .panel-heading h2, .v4-brand strong, .theme-preset-text strong, .production-item span, .target-stat-grid strong, .v4-clock-strip strong, .note-card strong, .design-menu-head strong, .timer-step-label strong) {
+  color: var(--readable-text) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .event-button span,
+html[data-theme][data-mode] .v4-shell .quick-button-group-title {
+  color: var(--readable-text) !important;
+}
+
+html[data-theme][data-mode] .v4-shell :where(.panel-kicker, .eyebrow, small, .header-meta span, .header-meta small, .v4-clock-strip span, .target-stat-grid span, .v4-card-head small, .note-actions span, .event-button small, .design-section-label, .design-select-row > span, .design-menu-head span, .theme-preset-button small, .theme-preset-text small, .name-menu small, .production-item small, .clock-panel small, .timer-step-label small, .note-actions details, .note-timecode, label, .timeline-count, .startup-card p) {
+  color: var(--readable-muted) !important;
+}
+
+html[data-theme][data-mode] .v4-shell :where(input, select, textarea, .v4-title-input) {
+  color: var(--readable-text) !important;
+  caret-color: var(--accent-live);
+}
+
+html[data-theme][data-mode] .v4-tabs button.active,
+html[data-theme][data-mode] .mobile-panel-switcher button.active,
+html[data-theme][data-mode] .target-status,
+html[data-theme][data-mode] .event-tag,
+html[data-theme][data-mode] .name-menu button:hover,
+html[data-theme][data-mode] .design-mode-toggle button.active,
+html[data-theme][data-mode] .accent-choice-grid button.active,
+html[data-theme][data-mode] .theme-preset-button.active,
+html[data-theme][data-mode] .primary-button,
+html[data-theme][data-mode] .target-action.start {
+  border-color: color-mix(in srgb, var(--accent-live) 84%, transparent) !important;
+  background: var(--accent-live) !important;
+  color: var(--on-accent-live) !important;
+}
+
+html[data-theme][data-mode] .v4-tabs button.active *,
+html[data-theme][data-mode] .mobile-panel-switcher button.active *,
+html[data-theme][data-mode] .target-status *,
+html[data-theme][data-mode] .event-tag *,
+html[data-theme][data-mode] .name-menu button:hover *,
+html[data-theme][data-mode] .design-mode-toggle button.active *,
+html[data-theme][data-mode] .accent-choice-grid button.active *,
+html[data-theme][data-mode] .theme-preset-button.active *,
+html[data-theme][data-mode] .primary-button *,
+html[data-theme][data-mode] .target-action.start * {
+  color: currentColor !important;
+}
+
+html[data-theme][data-mode] .app-reset-button,
+html[data-theme][data-mode] .v4-time-adders button,
+html[data-theme][data-mode] .secondary-button,
+html[data-theme][data-mode] .target-action.pause,
+html[data-theme][data-mode] .join-panel button,
+html[data-theme][data-mode] .v4-join-panel button {
+  border-color: color-mix(in srgb, var(--accent-2-live) 46%, var(--line)) !important;
+  background: color-mix(in srgb, var(--accent-2-live) 12%, var(--readable-control-surface)) !important;
+  color: var(--readable-text) !important;
+}
+
+html[data-theme][data-mode] .app-reset-button svg,
+html[data-theme][data-mode] .v4-time-adders button svg,
+html[data-theme][data-mode] .secondary-button svg,
+html[data-theme][data-mode] .target-action.pause svg,
+html[data-theme][data-mode] .join-panel button svg,
+html[data-theme][data-mode] .v4-join-panel button svg {
+  color: var(--readable-text) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .timer-step:not(.timer-step-record-recording) .timer-step-number {
+  border: 1px solid var(--readable-hairline);
+  background: var(--readable-accent-soft) !important;
+  color: var(--readable-text) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .timer-step-record-recording,
+html[data-theme][data-mode] .v4-shell .timer-step-record-recording *,
+html[data-theme][data-mode] .session-status-chip.record-recording,
+html[data-theme][data-mode] .session-status-chip.record-recording * {
+  color: var(--on-danger-fill) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .timer-step-record-recording .timer-step-number,
+html[data-theme][data-mode] .session-status-chip.record-recording .session-record-dot {
+  background: var(--on-danger-fill) !important;
+  color: var(--danger-fill) !important;
+}
+
+html[data-theme][data-mode] .v4-shell :where(button, input, select, textarea, [role="button"], summary):focus-visible {
+  outline: 3px solid var(--readable-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--readable-focus) 20%, transparent);
+}
+
+html[data-theme][data-mode] .v4-shell button:disabled,
+html[data-theme][data-mode] .v4-shell input:disabled,
+html[data-theme][data-mode] .v4-shell select:disabled,
+html[data-theme][data-mode] .v4-shell textarea:disabled {
+  opacity: 0.64;
+  cursor: not-allowed;
+}
+
+@media (pointer: coarse), (max-width: 1180px) {
+  html[data-theme][data-mode] .v4-shell :where(button, input, select, textarea) {
+    min-height: 46px;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-tabs button,
+  html[data-theme][data-mode] .v4-shell .topbar-actions button,
+  html[data-theme][data-mode] .v4-shell .event-button,
+  html[data-theme][data-mode] .v4-shell .timer-step {
+    min-height: 48px !important;
   }
 }
