@@ -6908,3 +6908,149 @@ html[data-mode="light"] .v4-shell .mobile-panel-switcher button {
     gap: 6px !important;
   }
 }
+
+/* v15 Project Details ergonomics: prevent stacked editor controls from clipping. */
+html[data-theme][data-mode] .v4-shell .v9-details-page {
+  align-items: stretch;
+}
+
+html[data-theme][data-mode] .v4-shell .v9-details-page .v4-card-head {
+  min-width: 0;
+}
+
+html[data-theme][data-mode] .v4-shell .v9-details-page .v4-card-head > div {
+  min-width: 0;
+}
+
+html[data-theme][data-mode] .v4-shell .v9-details-page .v4-card-head h2 {
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+html[data-theme][data-mode] .v4-shell .v9-details-page .quick-button-settings {
+  overflow: visible;
+}
+
+html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel {
+  max-height: none;
+}
+
+html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel .quick-button-list {
+  grid-auto-rows: minmax(56px, auto) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel .quick-button-list label {
+  min-height: 56px;
+  height: auto;
+  align-items: center;
+  overflow: visible;
+}
+
+html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel .quick-button-list input,
+html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel .quick-button-list select,
+html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel .quick-button-list button {
+  min-height: 44px;
+}
+
+@media (max-width: 1180px), (pointer: coarse) {
+  html[data-theme][data-mode] .v4-shell .v9-details-page {
+    display: flex !important;
+    flex-direction: column;
+    grid-auto-rows: auto;
+    gap: 10px !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page > .v4-card {
+    flex: 0 0 auto !important;
+    height: auto !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page .v4-card-head {
+    align-items: center;
+    gap: 8px;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page .v4-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page .v4-production-list {
+    max-height: min(40dvh, 360px);
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel {
+    overflow: visible !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel .quick-button-list {
+    max-height: min(58dvh, 620px);
+    padding-right: 2px;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel .quick-button-list label {
+    grid-template-columns: minmax(0, 1fr) minmax(132px, 0.42fr) minmax(44px, auto) !important;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel .v4-join-panel {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 620px) {
+  html[data-theme][data-mode] .v4-shell .v9-details-page .v4-card-head {
+    flex-wrap: wrap;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page .v4-card-head .secondary-button {
+    width: 100%;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page .v4-form-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page .v4-production-list,
+  html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel .quick-button-list {
+    max-height: none !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    flex-direction: column;
+    align-items: stretch;
+    height: auto !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page .quick-button-settings {
+    flex: 0 0 auto !important;
+    height: auto !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel .quick-button-list {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    flex-direction: column;
+    gap: 8px;
+    grid-auto-rows: minmax(164px, auto) !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel .quick-button-list label {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-rows: auto;
+    min-height: 164px;
+    gap: 8px;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel .quick-button-list button {
+    width: 100%;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v9-details-page .quick-editor-panel .v4-join-panel {
+    flex: 0 0 auto !important;
+  }
+}
