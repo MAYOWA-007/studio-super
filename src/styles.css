@@ -6866,17 +6866,24 @@ html[data-mode="light"] .v4-shell .mobile-panel-switcher button {
   }
 }
 
-@media (max-width: 1180px) and (orientation: portrait) {
+@media (min-width: 760px) and (max-width: 1180px) and (orientation: portrait) {
   html[data-theme][data-mode] .v4-shell .v4-log-page {
-    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-columns: minmax(360px, 0.94fr) minmax(0, 1.06fr) !important;
     grid-template-areas:
-      "target"
-      "log"
-      "timeline" !important;
+      "target log"
+      "timeline timeline" !important;
+    gap: 10px !important;
   }
 
   html[data-theme][data-mode] .v4-shell .target-panel h2 {
-    font-size: 4.15rem !important;
+    max-width: 100%;
+    font-size: clamp(2.2rem, 4.6vw, 2.8rem) !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+
+  html[data-theme][data-mode] .v4-shell .target-stat-grid strong {
+    font-size: clamp(0.82rem, 1.65vw, 0.92rem) !important;
   }
 }
 
