@@ -6586,3 +6586,325 @@ html[data-mode="light"] .v4-shell .mobile-panel-switcher button {
     display: none;
   }
 }
+
+/* v14 tablet/mobile ergonomics: keyboard-safe scroll and no hidden feature panels. */
+@media (max-width: 1180px), (pointer: coarse) {
+  html,
+  body,
+  #root {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  body {
+    min-height: 100dvh !important;
+  }
+
+  html[data-theme][data-mode] .app-shell.v4-shell,
+  html[data-theme][data-mode] .v4-shell {
+    width: 100% !important;
+    min-height: 100dvh !important;
+    height: auto !important;
+    overflow: visible !important;
+    grid-template-rows: auto auto !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-rows: auto;
+    align-items: stretch;
+    gap: 8px !important;
+    padding: 8px !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-brand,
+  html[data-theme][data-mode] .v4-shell .v4-title-block,
+  html[data-theme][data-mode] .v4-shell .v4-tabs,
+  html[data-theme][data-mode] .v4-shell .topbar-actions {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    min-width: 0;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-brand {
+    display: flex !important;
+    justify-content: center;
+    text-align: center;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-title-block {
+    display: grid !important;
+    gap: 4px;
+    text-align: center;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-title-input {
+    min-height: 44px !important;
+    height: 44px !important;
+    font-size: 1.25rem !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .header-meta {
+    justify-content: center;
+    overflow: visible !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .header-meta span,
+  html[data-theme][data-mode] .v4-shell .header-meta span:first-child,
+  html[data-theme][data-mode] .v4-shell .header-meta span:last-child {
+    display: inline-flex !important;
+    max-width: 100%;
+    min-height: 30px;
+    white-space: normal;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .topbar-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 8px;
+  }
+
+  html[data-theme][data-mode] .v4-shell .session-status-chip,
+  html[data-theme][data-mode] .v4-shell .app-reset-button,
+  html[data-theme][data-mode] .v4-shell .design-menu-trigger,
+  html[data-theme][data-mode] .v4-shell .operator-chip,
+  html[data-theme][data-mode] .v4-shell .v4-tabs button {
+    min-height: 46px !important;
+    padding: 0 10px !important;
+    font-size: 0.88rem !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .dashboard.v4-dashboard,
+  html[data-theme][data-mode] .v4-shell .v4-page {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .dashboard.v4-dashboard {
+    padding: 10px !important;
+    padding-bottom: calc(22px + env(safe-area-inset-bottom)) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-card,
+  html[data-theme][data-mode] .v4-shell .target-panel,
+  html[data-theme][data-mode] .v4-shell .logging-panel,
+  html[data-theme][data-mode] .v4-shell .timeline-panel,
+  html[data-theme][data-mode] .v4-shell .metadata-panel,
+  html[data-theme][data-mode] .v4-shell .production-switcher,
+  html[data-theme][data-mode] .v4-shell .quick-button-settings,
+  html[data-theme][data-mode] .v4-shell .export-panel {
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .mobile-panel-switcher {
+    display: none !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .mobile-show-buttons .timeline-panel,
+  html[data-theme][data-mode] .v4-shell .mobile-show-timeline .logging-panel,
+  html[data-theme][data-mode] .v4-shell .logging-panel,
+  html[data-theme][data-mode] .v4-shell .timeline-panel {
+    display: flex !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-log-page {
+    grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.1fr) !important;
+    grid-template-areas:
+      "target log"
+      "timeline timeline" !important;
+    align-items: start;
+  }
+
+  html[data-theme][data-mode] .v4-shell .target-panel {
+    grid-area: target;
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  html[data-theme][data-mode] .v4-shell .logging-panel {
+    grid-area: log;
+  }
+
+  html[data-theme][data-mode] .v4-shell .timeline-panel {
+    grid-area: timeline;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-production-page,
+  html[data-theme][data-mode] .v4-shell .v9-export-page {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-target-controls,
+  html[data-theme][data-mode] .v4-shell .v4-button-row,
+  html[data-theme][data-mode] .v4-shell .v4-time-adders,
+  html[data-theme][data-mode] .v4-shell .v4-stat-grid {
+    width: 100%;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-target-controls {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-button-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(52px, auto) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .target-stat-grid.v4-stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .target-panel h2 {
+    font-size: 3.7rem !important;
+    line-height: 0.95;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-event-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-auto-rows: minmax(56px, auto) !important;
+    overflow: visible !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .quick-button-groups,
+  html[data-theme][data-mode] .v4-shell .quick-button-group {
+    min-height: 0;
+    overflow: visible !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-timeline-list,
+  html[data-theme][data-mode] .v4-shell .v4-production-list,
+  html[data-theme][data-mode] .v4-shell .quick-editor-panel,
+  html[data-theme][data-mode] .v4-shell .quick-editor-panel .quick-button-list {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-timeline-list {
+    display: flex !important;
+    flex-direction: column;
+    max-height: min(52dvh, 620px);
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-production-list,
+  html[data-theme][data-mode] .v4-shell .quick-editor-panel .quick-button-list {
+    max-height: min(48dvh, 520px);
+  }
+
+  html[data-theme][data-mode] .v4-shell input,
+  html[data-theme][data-mode] .v4-shell textarea,
+  html[data-theme][data-mode] .v4-shell select {
+    min-height: 44px !important;
+    font-size: 16px !important;
+    -webkit-user-select: text;
+    user-select: text;
+    touch-action: manipulation;
+    scroll-margin-top: 170px;
+  }
+
+  html[data-theme][data-mode] .v4-shell textarea {
+    min-height: 92px !important;
+    resize: vertical;
+  }
+
+  html[data-theme][data-mode] .v4-shell button {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+}
+
+@media (max-width: 620px) {
+  html[data-theme][data-mode] .v4-shell .v4-log-page {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas:
+      "target"
+      "log"
+      "timeline" !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .topbar-actions {
+    grid-template-columns: minmax(46px, 0.22fr) minmax(70px, 0.32fr) minmax(70px, 0.32fr) minmax(118px, 0.78fr) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .session-status-chip {
+    padding: 0 !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .session-status-chip > span:last-child {
+    display: none;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-button-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-button-row .target-reset {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  html[data-theme][data-mode] .v4-shell .target-stat-grid.v4-stat-grid,
+  html[data-theme][data-mode] .v4-shell .v4-clock-strip {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-event-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 1180px) and (orientation: portrait) {
+  html[data-theme][data-mode] .v4-shell .v4-log-page {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas:
+      "target"
+      "log"
+      "timeline" !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .target-panel h2 {
+    font-size: 4.15rem !important;
+  }
+}
+
+@media (max-width: 1180px) and (orientation: landscape) {
+  html[data-theme][data-mode] .v4-shell .target-panel h2 {
+    max-width: 100%;
+    font-size: 3rem !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 620px) {
+  html[data-theme][data-mode] .v4-shell .target-panel h2 {
+    font-size: 2.85rem !important;
+  }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  html[data-theme][data-mode] .v4-shell .v4-brand,
+  html[data-theme][data-mode] .v4-shell .header-meta,
+  html[data-theme][data-mode] .v4-shell .design-menu-trigger span,
+  html[data-theme][data-mode] .v4-shell .design-menu-trigger small {
+    display: none !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-title-input {
+    min-height: 38px !important;
+    height: 38px !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-topbar {
+    gap: 6px !important;
+  }
+}

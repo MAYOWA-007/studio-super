@@ -812,6 +812,22 @@ function App() {
   }, []);
 
   useEffect(() => {
+    function keepTextEntryVisible(event: FocusEvent) {
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement)) {
+        return;
+      }
+
+      window.setTimeout(() => {
+        target.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+      }, 80);
+    }
+
+    document.addEventListener("focusin", keepTextEntryVisible);
+    return () => document.removeEventListener("focusin", keepTextEntryVisible);
+  }, []);
+
+  useEffect(() => {
     saveQuickButtons(quickButtons);
   }, [quickButtons]);
 
