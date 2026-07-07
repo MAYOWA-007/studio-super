@@ -24,7 +24,7 @@
   Video,
   type LucideIcon
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
   exportCsv,
   exportPdf
@@ -745,11 +745,13 @@ function App() {
   const [startupMode, setStartupMode] = useState<StartupMode>("choose");
   const [startupProductionTitle, setStartupProductionTitle] = useState("");
   const [startupExistingCode, setStartupExistingCode] = useState(() => loadActiveCode(starterCode));
+  const [copyToast, setCopyToast] = useState("");
 
   const broadcastRef = useRef<BroadcastChannel | null>(null);
   const suppressBroadcastRef = useRef(false);
   const localSessionOverrideRef = useRef(false);
   const designMenuRef = useRef<HTMLDivElement | null>(null);
+  const copyToastTimerRef = useRef<number | null>(null);
   const activeCodeRef = useRef(activeCode);
   const productionsRef = useRef(productions);
   activeCodeRef.current = activeCode;
@@ -798,6 +800,68 @@ function App() {
     ? targetMinuteOptions
     : [...targetMinuteOptions, targetTimer.targetMinutes].sort((a, b) => a - b);
 
+  async function copyStaticValue(value: string) {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) {
+      return;
+    }
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(trimmedValue);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = trimmedValue;
+        textArea.setAttribute("readonly", "true");
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        textArea.remove();
+      }
+      setCopyToast("Copied to clipboard");
+    } catch {
+      setCopyToast("Could not copy");
+    }
+
+    if (copyToastTimerRef.current) {
+      window.clearTimeout(copyToastTimerRef.current);
+    }
+    copyToastTimerRef.current = window.setTimeout(() => setCopyToast(""), 1500);
+  }
+
+  function CopyableValue({
+    value,
+    label,
+    className = "",
+    children
+  }: {
+    value: string;
+    label: string;
+    className?: string;
+    children?: ReactNode;
+  }) {
+    return (
+      <span
+        className={`copyable-value ${className}`.trim()}
+        role="button"
+        tabIndex={0}
+        title={`Copy ${label}`}
+        aria-label={`Copy ${label}`}
+        onClick={() => void copyStaticValue(value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            void copyStaticValue(value);
+          }
+        }}
+      >
+        {children || value}
+      </span>
+    );
+  }
+
   function applyThemePreset(nextTheme: ThemeChoice) {
     const preset = themeChoices.find((theme) => theme.value === nextTheme) || themeChoices[0];
     setThemeChoice(preset.value);
@@ -809,6 +873,14 @@ function App() {
   useEffect(() => {
     const timer = window.setInterval(() => setNowIso(nowUtcIso()), 1000);
     return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (copyToastTimerRef.current) {
+        window.clearTimeout(copyToastTimerRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -1786,11 +1858,21 @@ function App() {
 
   const liveNoteCount = activeProduction.noteLogs.filter((note) => !note.deletedAtUtc).length;
   const visibleTime = formatZonedTime(nowIso, selectedTimeZone);
+  const projectedEndText = formatClock(targetSnapshot.projectedEnd, selectedTimeZone);
+  const plannedEndText = formatClock(targetSnapshot.plannedEnd, selectedTimeZone);
+  const remainingText = formatRemaining(targetSnapshot.remainingMs);
+  const activeDurationText = formatDuration(targetSnapshot.activeMs);
+  const sessionDateText = compactDate(activeProduction.sessionDate);
   const sessionIndicatorLabel = recordControlState === "recording" ? "Recording" : targetStatus;
   const sessionIndicatorTitle = `${sessionIndicatorLabel}. ${recordControlCaption}.`;
 
   return (
     <div className="app-shell v4-shell">
+      {copyToast ? (
+        <div className="copy-toast" role="status" aria-live="polite">
+          {copyToast}
+        </div>
+      ) : null}
       {!operatorName && (
         <div className="operator-gate" role="dialog" aria-modal="true">
           <div className="operator-panel">
@@ -1892,8 +1974,14 @@ function App() {
             placeholder="Production name"
           />
           <div className="header-meta">
-            <span><small>Short name</small>{activeShortName}</span>
-            <span><small>Date</small>{compactDate(activeProduction.sessionDate)}</span>
+            <span>
+              <small>Short name</small>
+              <CopyableValue value={activeShortName} label="short name" />
+            </span>
+            <span>
+              <small>Date</small>
+              <CopyableValue value={sessionDateText} label="session date" />
+            </span>
           </div>
         </div>
         <div className="v4-tabs" role="tablist" aria-label="Dashboard sections">
@@ -2057,14 +2145,18 @@ function App() {
               <div className="v4-card-head">
                 <div>
                   <p className="panel-kicker">Current Time</p>
-                  <h2>{visibleTime}</h2>
+                  <h2>
+                    <CopyableValue value={visibleTime} label="current time" />
+                  </h2>
                 </div>
               </div>
 
               <div className="v4-clock-strip">
                 <div className="v4-projected-end">
                   <span>Projected End</span>
-                  <strong>{formatClock(targetSnapshot.projectedEnd, selectedTimeZone)}</strong>
+                  <strong>
+                    <CopyableValue value={projectedEndText} label="projected end" />
+                  </strong>
                 </div>
                 <select
                   aria-label="Time zone"
@@ -2125,15 +2217,21 @@ function App() {
               <div className="target-stat-grid v4-stat-grid">
                 <div>
                   <span>Remaining</span>
-                  <strong>{formatRemaining(targetSnapshot.remainingMs)}</strong>
+                  <strong>
+                    <CopyableValue value={remainingText} label="remaining time" />
+                  </strong>
                 </div>
                 <div>
                   <span>Active</span>
-                  <strong>{formatDuration(targetSnapshot.activeMs)}</strong>
+                  <strong>
+                    <CopyableValue value={activeDurationText} label="active time" />
+                  </strong>
                 </div>
                 <div>
                   <span>Target Ends</span>
-                  <strong>{formatClock(targetSnapshot.plannedEnd, selectedTimeZone)}</strong>
+                  <strong>
+                    <CopyableValue value={plannedEndText} label="target end time" />
+                  </strong>
                 </div>
               </div>
             </div>

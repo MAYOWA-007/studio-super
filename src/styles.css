@@ -7266,6 +7266,69 @@ html[data-theme][data-mode] .v4-shell :where(input, select, textarea, .v4-title-
   caret-color: var(--accent-live);
 }
 
+html[data-theme][data-mode] .copyable-value {
+  max-width: 100%;
+  min-width: 0;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border-radius: 6px;
+  color: inherit;
+  cursor: copy;
+  line-height: 1.08;
+  -webkit-tap-highlight-color: transparent;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  transition:
+    color 140ms ease,
+    text-decoration-color 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+html[data-theme][data-mode] .copyable-value:hover {
+  color: var(--readable-text);
+  text-decoration-color: color-mix(in srgb, var(--accent-live) 72%, transparent);
+  background: color-mix(in srgb, var(--accent-live) 10%, transparent);
+}
+
+html[data-theme][data-mode] .copyable-value:focus-visible {
+  outline: 3px solid var(--readable-focus);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--readable-focus) 20%, transparent);
+}
+
+html[data-theme][data-mode] .target-panel h2 .copyable-value,
+html[data-theme][data-mode] .v4-clock-strip strong .copyable-value,
+html[data-theme][data-mode] .target-stat-grid strong .copyable-value {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html[data-theme][data-mode] .copy-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(22px + env(safe-area-inset-bottom));
+  z-index: 220;
+  transform: translateX(-50%);
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent-live) 52%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel-strong) 92%, var(--bg));
+  color: var(--readable-text);
+  box-shadow: 0 16px 40px color-mix(in srgb, #000000 34%, transparent);
+  font-size: 0.86rem;
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+}
+
 html[data-theme][data-mode] .v4-tabs button.active,
 html[data-theme][data-mode] .mobile-panel-switcher button.active,
 html[data-theme][data-mode] .target-status,
