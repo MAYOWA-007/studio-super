@@ -7422,3 +7422,125 @@ html[data-theme][data-mode] .v4-shell textarea:disabled {
     min-height: 48px !important;
   }
 }
+
+/* v18 iPad/tablet layout contract: final responsive truth table. */
+@media (max-width: 1180px), (pointer: coarse) {
+  html[data-theme][data-mode] .v4-shell .dashboard.v4-dashboard {
+    overflow: visible !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-page {
+    align-content: start !important;
+    align-items: start !important;
+    grid-auto-rows: auto !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .target-panel,
+  html[data-theme][data-mode] .v4-shell .logging-panel,
+  html[data-theme][data-mode] .v4-shell .timeline-panel {
+    min-width: 0 !important;
+    width: 100%;
+  }
+
+  html[data-theme][data-mode] .v4-shell .target-panel h2,
+  html[data-theme][data-mode] .v4-shell .target-panel h2 .copyable-value {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-clock-strip,
+  html[data-theme][data-mode] .v4-shell .target-stat-grid.v4-stat-grid,
+  html[data-theme][data-mode] .v4-shell .v4-button-row,
+  html[data-theme][data-mode] .v4-shell .v4-event-grid {
+    min-width: 0;
+  }
+}
+
+@media (min-width: 621px) and (max-width: 900px) and (orientation: portrait) {
+  html[data-theme][data-mode] .v4-shell .v4-log-page {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto auto !important;
+    grid-template-areas:
+      'target'
+      'log'
+      'timeline' !important;
+    gap: 10px !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .target-panel h2 {
+    font-size: clamp(3rem, 8.4vw, 4.35rem) !important;
+    line-height: 0.95 !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-button-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 58px !important;
+    gap: 10px !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .timer-step {
+    padding-inline: 42px 12px !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-event-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1180px) and (orientation: portrait) {
+  html[data-theme][data-mode] .v4-shell .v4-log-page {
+    grid-template-columns: minmax(390px, 0.86fr) minmax(0, 1.14fr) !important;
+    grid-template-rows: auto auto !important;
+    grid-template-areas:
+      'target log'
+      'timeline timeline' !important;
+    gap: 12px !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .target-panel h2 {
+    font-size: clamp(2.35rem, 4vw, 3.05rem) !important;
+    line-height: 0.96 !important;
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1180px) and (orientation: landscape) {
+  html[data-theme][data-mode] .v4-shell .v4-log-page {
+    grid-template-columns: minmax(420px, 0.92fr) minmax(0, 1.08fr) !important;
+    grid-template-rows: auto auto !important;
+    grid-template-areas:
+      'target log'
+      'timeline timeline' !important;
+    gap: 12px !important;
+  }
+}
+
+@media (max-width: 620px) {
+  html[data-theme][data-mode] .v4-shell .v4-log-page {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto auto !important;
+    grid-template-areas:
+      'target'
+      'log'
+      'timeline' !important;
+    gap: 10px !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .target-panel h2 {
+    font-size: clamp(2.55rem, 13vw, 3.25rem) !important;
+    line-height: 0.96 !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-button-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-button-row .target-reset {
+    grid-column: 1 / -1;
+    width: 100% !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-event-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
