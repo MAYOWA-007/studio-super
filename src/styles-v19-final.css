@@ -1,0 +1,52 @@
+/* Final July feedback overrides, loaded after the restored v8/v9 layers. */
+html[data-theme][data-mode] .v4-shell .v4-tabs {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .topbar-actions {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .v9-details-page {
+  grid-template-columns: minmax(280px, 0.72fr) minmax(420px, 1.28fr) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .target-panel .v4-card-head {
+  grid-template-columns: minmax(0, 1fr) 48px !important;
+}
+
+html[data-theme][data-mode] .v4-shell .target-panel h2 {
+  font-size: clamp(2.1rem, 10cqi, 4.7rem) !important;
+  font-weight: 500 !important;
+  line-height: 0.96 !important;
+  white-space: nowrap !important;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-clock-strip {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-button-row {
+  grid-template-columns: minmax(0, 1fr) 54px !important;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-button-row .target-reset {
+  grid-column: auto !important;
+  width: 54px !important;
+}
+
+@media (max-width: 1180px), (pointer: coarse) {
+  html[data-theme][data-mode] .v4-shell .v9-details-page {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 620px) {
+  html[data-theme][data-mode] .v4-shell .v4-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-clock-strip {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}

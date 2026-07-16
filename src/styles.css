@@ -6573,6 +6573,362 @@ html[data-mode="light"] .v4-shell .mobile-panel-switcher button {
   }
 }
 
+/* v19 July feedback: clock focus, clearer session controls, and settings ownership. */
+html[data-theme][data-mode] .v4-shell .v4-tabs {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .target-panel {
+  container-type: inline-size;
+}
+
+html[data-theme][data-mode] .v4-shell .target-panel .v4-card-head {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px !important;
+  gap: 10px;
+  align-items: center;
+}
+
+html[data-theme][data-mode] .v4-shell .target-panel .v4-card-head > div {
+  min-width: 0;
+}
+
+html[data-theme][data-mode] .v4-shell .target-panel h2 {
+  max-width: 100%;
+  font-size: clamp(2.1rem, 10cqi, 4.7rem) !important;
+  font-weight: 500 !important;
+  line-height: 0.96 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap !important;
+}
+
+html[data-theme][data-mode] .v4-shell .clock-expand-button,
+html[data-theme][data-mode] .v4-shell .full-screen-clock-close {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--readable-control-surface);
+  color: var(--readable-text);
+}
+
+html[data-theme][data-mode] .v4-shell .v4-clock-strip {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 14px;
+  margin-bottom: 4px;
+  padding-block: 12px;
+}
+
+html[data-theme][data-mode] .v4-shell .clock-zone-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--readable-control-surface);
+  color: var(--muted) !important;
+  white-space: nowrap;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-clock-strip strong,
+html[data-theme][data-mode] .v4-shell .target-stat-grid strong {
+  font-weight: 500 !important;
+  line-height: 1.05;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-clock-strip strong {
+  font-size: clamp(1.35rem, 2.2vw, 2rem) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .target-stat-grid strong {
+  font-size: clamp(1.25rem, 2vw, 1.8rem) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-clock-strip span:not(.copyable-value),
+html[data-theme][data-mode] .v4-shell .target-stat-grid span:not(.copyable-value) {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-target-controls {
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+html[data-theme][data-mode] .v4-shell .v4-button-row {
+  grid-template-columns: minmax(0, 1fr) 54px !important;
+}
+
+html[data-theme][data-mode] .v4-shell .logging-panel .v4-card-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 0.7fr);
+  gap: 12px;
+  align-items: center;
+}
+
+html[data-theme][data-mode] .v4-shell .record-dock {
+  width: 100%;
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent-live) 58%, var(--line));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent-live) 12%, var(--readable-control-surface));
+  color: var(--readable-text);
+}
+
+html[data-theme][data-mode] .v4-shell .record-dock > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+html[data-theme][data-mode] .v4-shell .record-dock strong,
+html[data-theme][data-mode] .v4-shell .record-dock small {
+  color: currentColor !important;
+  line-height: 1.05;
+}
+
+html[data-theme][data-mode] .v4-shell .record-dock.timer-step-record-recording {
+  border-color: var(--danger-fill);
+  background: var(--danger-fill);
+  color: var(--on-danger-fill);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger-fill) 22%, transparent);
+  animation: recordBreathFinal 1.55s ease-in-out infinite;
+}
+
+html[data-theme][data-mode] .v4-shell .logging-panel > .quick-button-groups {
+  flex: 1 1 auto;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-timeline-list > .note-card.tone-red {
+  --note-tone: #e5484d !important;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-timeline-list > .note-card.tone-teal {
+  --note-tone: #00a98f !important;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-timeline-list > .note-card.tone-green,
+html[data-theme][data-mode] .v4-shell .v4-timeline-list > .note-card.tone-segment-start {
+  --note-tone: #30a46c !important;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-timeline-list > .note-card.tone-amber,
+html[data-theme][data-mode] .v4-shell .v4-timeline-list > .note-card.tone-segment-end {
+  --note-tone: #f5b800 !important;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-timeline-list > .note-card.tone-blue {
+  --note-tone: #4f7df3 !important;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-timeline-list > .note-card.tone-slate {
+  --note-tone: #8891a5 !important;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-timeline-list .event-tag {
+  background: var(--note-tone) !important;
+  color: #ffffff !important;
+}
+
+html[data-theme][data-mode] .v4-shell .v4-timeline-list > .note-card.tone-amber .event-tag,
+html[data-theme][data-mode] .v4-shell .v4-timeline-list > .note-card.tone-segment-end .event-tag {
+  color: #151515 !important;
+}
+
+html[data-theme][data-mode] .v4-shell .production-item > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+html[data-theme][data-mode] .v4-shell .production-item em {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border-radius: 5px;
+  background: var(--accent-live);
+  color: var(--on-accent);
+  font-size: 0.65rem;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+html[data-theme][data-mode] .v4-shell .selected-production-banner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent-live) 50%, var(--line));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent-live) 10%, var(--panel));
+  color: var(--text);
+}
+
+html[data-theme][data-mode] .v4-shell .selected-production-banner > span,
+html[data-theme][data-mode] .v4-shell .appearance-settings-button > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+html[data-theme][data-mode] .v4-shell .selected-production-banner small,
+html[data-theme][data-mode] .v4-shell .appearance-settings-button small {
+  color: var(--muted) !important;
+}
+
+html[data-theme][data-mode] .v4-shell .export-selection-banner {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+html[data-theme][data-mode] .v4-shell .app-settings-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.55fr);
+  gap: 12px;
+  align-items: start;
+  overflow: auto;
+}
+
+html[data-theme][data-mode] .v4-shell .appearance-settings-card {
+  min-width: 0;
+}
+
+html[data-theme][data-mode] .v4-shell .appearance-settings-button {
+  width: 100%;
+  min-height: 68px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--readable-control-surface);
+  color: var(--readable-text);
+  text-align: left;
+}
+
+html[data-theme][data-mode] .v4-shell .full-screen-clock {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 100dvh;
+  padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+  background: var(--app-bg);
+  color: var(--text);
+}
+
+html[data-theme][data-mode] .v4-shell .full-screen-clock-close {
+  position: fixed;
+  top: max(18px, env(safe-area-inset-top));
+  right: max(18px, env(safe-area-inset-right));
+  z-index: 1;
+}
+
+html[data-theme][data-mode] .v4-shell .full-screen-clock-content {
+  width: min(1200px, 100%);
+  display: grid;
+  place-items: center;
+  gap: clamp(10px, 2.4vh, 24px);
+  text-align: center;
+}
+
+html[data-theme][data-mode] .v4-shell .full-screen-clock-content p,
+html[data-theme][data-mode] .v4-shell .full-screen-clock-content > span:not(.copyable-value) {
+  margin: 0;
+  color: var(--muted);
+  font-size: clamp(0.85rem, 1.5vw, 1.2rem);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+html[data-theme][data-mode] .v4-shell .full-screen-current-time {
+  max-width: 100%;
+  color: var(--text);
+  font-size: clamp(4rem, 15vw, 12rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  line-height: 0.88;
+  white-space: nowrap;
+}
+
+html[data-theme][data-mode] .v4-shell .full-screen-projected-time {
+  color: var(--accent-live);
+  font-size: clamp(2.8rem, 8vw, 7rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  line-height: 0.92;
+  white-space: nowrap;
+}
+
+html[data-theme][data-mode] .v4-shell .full-screen-clock-divider {
+  width: min(520px, 70vw);
+  height: 1px;
+  margin-block: clamp(6px, 2vh, 18px);
+  background: var(--line);
+}
+
+@media (max-width: 1180px), (pointer: coarse) {
+  html[data-theme][data-mode] .v4-shell .app-settings-page {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: auto;
+  }
+
+  html[data-theme][data-mode] .v4-shell .target-panel h2 {
+    font-size: clamp(2.5rem, 9cqi, 4.4rem) !important;
+  }
+}
+
+@media (max-width: 620px) {
+  html[data-theme][data-mode] .v4-shell .v4-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .target-panel .v4-card-head {
+    grid-template-columns: minmax(0, 1fr) 48px !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .v4-clock-strip,
+  html[data-theme][data-mode] .v4-shell .logging-panel .v4-card-head,
+  html[data-theme][data-mode] .v4-shell .export-selection-banner {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html[data-theme][data-mode] .v4-shell .clock-zone-label {
+    width: 100%;
+  }
+
+  html[data-theme][data-mode] .v4-shell .record-dock,
+  html[data-theme][data-mode] .v4-shell .export-selection-banner .secondary-button {
+    width: 100%;
+  }
+
+  html[data-theme][data-mode] .v4-shell .full-screen-current-time {
+    font-size: clamp(3rem, 16vw, 5.5rem);
+  }
+}
+
 @media (max-width: 460px) {
   html[data-theme][data-mode] .v4-shell .topbar-actions {
     grid-template-columns: minmax(42px, 0.28fr) minmax(58px, 0.34fr) minmax(58px, 0.34fr) minmax(112px, 0.7fr) !important;

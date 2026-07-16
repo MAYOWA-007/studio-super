@@ -7,7 +7,7 @@ Studio Super is an open-source, static session-notes and production-handoff app.
 - Restored v9 session dashboard layout with startup flow, Rooms, Log Mode, Project Details, and Export
 - Live session logging with editable quick event and issue buttons
 - Production details, crew fields, recording path, and editor handoff notes
-- Target Time clock with start, pause, reset, projected end, and time-zone controls
+- Pacific Time clock with a full-screen view, synchronized projected end, start, pause, and reset controls
 - Font options for the interface and PDF export
 - PDF and CSV editor handoff exports
 - GitHub Pages friendly static build
@@ -21,7 +21,6 @@ The app stores working data in this site's browser storage on the current device
 - productions, notes, deleted-note state, active production, and rooms
 - saved operator/crew names and roster suggestions
 - customized quick-log buttons
-- selected time zone
 - theme, font, color, and dark/light mode choices
 
 That browser storage is scoped to this site on that specific browser/device. Other users and other devices cannot reach it through Studio Super. Clearing site data or browser storage removes it from that device. PDF and CSV exports are the only files the app creates for sharing.
@@ -46,3 +45,5 @@ The production site is generated into `docs/` so GitHub Pages can serve it from 
 ## License
 
 MIT License. See [LICENSE](./LICENSE).
+
+<sub>Contributors: Mayowa Alaketu · Connor · Eli · Albert · Charlie · Alec · Marcia · Fabiola</sub>

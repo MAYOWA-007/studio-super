@@ -7,6 +7,7 @@
   Flag,
   FolderOpen,
   HardDrive,
+  Maximize2,
   MicOff,
   MonitorX,
   Palette,
@@ -22,6 +23,7 @@
   Trash2,
   Users,
   Video,
+  X,
   type LucideIcon
 } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
@@ -48,7 +50,7 @@ import {
   summarizeProduction,
   uid
 } from "./storage";
-import { compactDate, formatZonedDateTime, formatZonedTime, nowUtcIso } from "./time";
+import { compactDate, formatZonedDateTime, nowUtcIso } from "./time";
 import type { CrewRole, NoteLog, Production, SortMode, TargetTimer } from "./types";
 
 interface EventButton {
@@ -84,22 +86,15 @@ const starterCode = "new-production";
 const targetMinuteOptions = [30, 45, 60, 75, 90, 120, 150, 180];
 const pacificTimeZone = "America/Los_Angeles";
 const quickButtonsKey = "studio-super:quick-buttons:v9";
-const timeZoneKey = "studio-super:selected-time-zone:v9";
 const fontChoiceKey = "studio-super:font-choice:v9";
 const themeChoiceKey = "studio-super:theme-choice:v10";
 const modeChoiceKey = "studio-super:mode-choice:v10";
 const accentChoiceKey = "studio-super:accent-choice:v10";
 const retiredQuickButtonIds = new Set(["record-start"]);
 
-const timeZoneOptions = [
-  { label: "West Coast", value: "America/Los_Angeles" },
-  { label: "East Coast", value: "America/New_York" }
-] as const;
-
 const pinnedQuickButtonIds = ["segment-start", "segment-end", "iso-intro", "iso-outro"];
 
-type DashboardTab = "log" | "details" | "export";
-type TimeZoneValue = (typeof timeZoneOptions)[number]["value"];
+type DashboardTab = "log" | "details" | "settings" | "export";
 type StartupMode = "choose" | "new" | "open";
 type MobilePanel = "buttons" | "timeline";
 
@@ -297,13 +292,6 @@ function saveQuickButtons(buttons: EventButton[]) {
 
 function quickButtonGroup(button: EventButton) {
   return button.group || inferQuickButtonGroup(button.label);
-}
-
-function loadSelectedTimeZone(): TimeZoneValue {
-  const saved = localStorage.getItem(timeZoneKey);
-  return timeZoneOptions.some((option) => option.value === saved)
-    ? (saved as TimeZoneValue)
-    : "America/Los_Angeles";
 }
 
 function loadStoredChoice<T extends string>(key: string, choices: readonly { value: T }[], fallback: T): T {
@@ -725,13 +713,12 @@ function App() {
   const [productionSearch, setProductionSearch] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [joinTitle, setJoinTitle] = useState("");
-  const [quickNote, setQuickNote] = useState("");
   const [timelineSearch, setTimelineSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [editingId, setEditingId] = useState("");
   const [editingText, setEditingText] = useState("");
   const [activeTab, setActiveTab] = useState<DashboardTab>("log");
-  const [selectedTimeZone, setSelectedTimeZone] = useState<TimeZoneValue>(() => loadSelectedTimeZone());
+  const selectedTimeZone = pacificTimeZone;
   const [fontChoice, setFontChoice] = useState<FontChoice>(() => loadFontChoice());
   const [themeChoice, setThemeChoice] = useState<ThemeChoice>(() => loadThemeChoice());
   const [modeChoice, setModeChoice] = useState<ModeChoice>(() => loadModeChoice());
@@ -746,6 +733,7 @@ function App() {
   const [startupProductionTitle, setStartupProductionTitle] = useState("");
   const [startupExistingCode, setStartupExistingCode] = useState(() => loadActiveCode(starterCode));
   const [copyToast, setCopyToast] = useState("");
+  const [fullScreenClockOpen, setFullScreenClockOpen] = useState(false);
 
   const broadcastRef = useRef<BroadcastChannel | null>(null);
   const suppressBroadcastRef = useRef(false);
@@ -876,6 +864,25 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (!fullScreenClockOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setFullScreenClockOpen(false);
+      }
+    }
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [fullScreenClockOpen]);
+
+  useEffect(() => {
     return () => {
       if (copyToastTimerRef.current) {
         window.clearTimeout(copyToastTimerRef.current);
@@ -902,10 +909,6 @@ function App() {
   useEffect(() => {
     saveQuickButtons(quickButtons);
   }, [quickButtons]);
-
-  useEffect(() => {
-    localStorage.setItem(timeZoneKey, selectedTimeZone);
-  }, [selectedTimeZone]);
 
   useEffect(() => {
     localStorage.setItem(fontChoiceKey, fontChoice);
@@ -1425,7 +1428,6 @@ function App() {
     setStartupMode("new");
     setStartupProductionTitle("");
     setStartupExistingCode(created.code);
-    setQuickNote("");
     setTimelineSearch("");
     setTypeFilter("All");
     setProductionSearch("");
@@ -1500,7 +1502,7 @@ function App() {
     }
 
     const utcIso = nowUtcIso();
-    const text = quickNote.trim() || `${eventType} logged`;
+    const text = `${eventType} logged`;
     const note: NoteLog = {
       id: uid("note"),
       eventType,
@@ -1523,7 +1525,6 @@ function App() {
       noteLogs: [note, ...production.noteLogs],
       rosterNames: collectRosterNames({ ...production, noteLogs: [note, ...production.noteLogs] })
     }));
-    setQuickNote("");
   }
 
   function recordStop() {
@@ -1857,9 +1858,9 @@ function App() {
   }
 
   const liveNoteCount = activeProduction.noteLogs.filter((note) => !note.deletedAtUtc).length;
-  const visibleTime = formatZonedTime(nowIso, selectedTimeZone);
+  const visibleTime = formatClock(new Date(nowIso), selectedTimeZone);
   const projectedEndText = formatClock(targetSnapshot.projectedEnd, selectedTimeZone);
-  const plannedEndText = formatClock(targetSnapshot.plannedEnd, selectedTimeZone);
+  const targetEndText = projectedEndText;
   const remainingText = formatRemaining(targetSnapshot.remainingMs);
   const activeDurationText = formatDuration(targetSnapshot.activeMs);
   const sessionDateText = compactDate(activeProduction.sessionDate);
@@ -1871,6 +1872,26 @@ function App() {
       {copyToast ? (
         <div className="copy-toast" role="status" aria-live="polite">
           {copyToast}
+        </div>
+      ) : null}
+      {fullScreenClockOpen ? (
+        <div className="full-screen-clock" role="dialog" aria-modal="true" aria-label="Pacific Time clock">
+          <button
+            className="full-screen-clock-close"
+            type="button"
+            onClick={() => setFullScreenClockOpen(false)}
+            title="Close full-screen clock"
+            aria-label="Close full-screen clock"
+          >
+            <X size={28} />
+          </button>
+          <div className="full-screen-clock-content">
+            <p>Pacific Time</p>
+            <CopyableValue value={visibleTime} label="current Pacific time" className="full-screen-current-time" />
+            <div className="full-screen-clock-divider" />
+            <span>Projected End</span>
+            <CopyableValue value={projectedEndText} label="projected end" className="full-screen-projected-time" />
+          </div>
         </div>
       ) : null}
       {!operatorName && (
@@ -1990,6 +2011,9 @@ function App() {
           </button>
           <button className={activeTab === "details" ? "active" : ""} onClick={() => setActiveTab("details")}>
             Project Details
+          </button>
+          <button className={activeTab === "settings" ? "active" : ""} onClick={() => setActiveTab("settings")}>
+            App Settings
           </button>
           <button className={activeTab === "export" ? "active" : ""} onClick={() => setActiveTab("export")}>
             Export
@@ -2144,11 +2168,20 @@ function App() {
             <div className={`v4-card target-panel timer-${targetTimer.status}`}>
               <div className="v4-card-head">
                 <div>
-                  <p className="panel-kicker">Current Time</p>
+                  <p className="panel-kicker">Current Time · Pacific</p>
                   <h2>
                     <CopyableValue value={visibleTime} label="current time" />
                   </h2>
                 </div>
+                <button
+                  className="clock-expand-button"
+                  type="button"
+                  onClick={() => setFullScreenClockOpen(true)}
+                  title="Open full-screen clock"
+                  aria-label="Open full-screen clock"
+                >
+                  <Maximize2 size={20} />
+                </button>
               </div>
 
               <div className="v4-clock-strip">
@@ -2158,17 +2191,7 @@ function App() {
                     <CopyableValue value={projectedEndText} label="projected end" />
                   </strong>
                 </div>
-                <select
-                  aria-label="Time zone"
-                  value={selectedTimeZone}
-                  onChange={(event) => setSelectedTimeZone(event.target.value as TimeZoneValue)}
-                >
-                  {timeZoneOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                <span className="clock-zone-label">Pacific Time</span>
               </div>
 
               <div className="target-controls v4-target-controls">
@@ -2183,19 +2206,6 @@ function App() {
                   </select>
                 </label>
                 <div className="v4-button-row">
-                  <button
-                    className={`secondary-button timer-step timer-step-record timer-step-record-${recordControlState}`}
-                    onClick={toggleRecord}
-                    disabled={!operatorName}
-                    aria-pressed={recordControlState === "recording"}
-                  >
-                    <span className="timer-step-number">1</span>
-                    {recordControlState === "recording" ? <Square size={18} /> : <Radio size={18} />}
-                    <span className="timer-step-label">
-                      <strong>{recordControlLabel}</strong>
-                      <small>{recordControlCaption}</small>
-                    </span>
-                  </button>
                   <button
                     className={`target-action timer-step timer-step-target ${targetTimer.status === "running" ? "pause" : "start"}`}
                     onClick={targetTimer.status === "running" ? pauseTargetTimer : startOrResumeTargetTimer}
@@ -2230,7 +2240,7 @@ function App() {
                 <div>
                   <span>Target Ends</span>
                   <strong>
-                    <CopyableValue value={plannedEndText} label="target end time" />
+                    <CopyableValue value={targetEndText} label="target end time" />
                   </strong>
                 </div>
               </div>
@@ -2242,15 +2252,19 @@ function App() {
                   <p className="panel-kicker">Log Entry</p>
                   <h2>Quick Log</h2>
                 </div>
+                <button
+                  className={`record-dock timer-step-record-${recordControlState}`}
+                  onClick={toggleRecord}
+                  disabled={!operatorName}
+                  aria-pressed={recordControlState === "recording"}
+                >
+                  {recordControlState === "recording" ? <Square size={20} /> : <Radio size={20} />}
+                  <span>
+                    <strong>{recordControlLabel}</strong>
+                    <small>{recordControlCaption}</small>
+                  </span>
+                </button>
               </div>
-              <textarea
-                value={quickNote}
-                onChange={(event) => setQuickNote(event.target.value)}
-                onInput={(event) => setQuickNote(event.currentTarget.value)}
-                placeholder="Enter Note"
-                aria-label="Enter Note"
-                rows={2}
-              />
               <div className="quick-button-groups">
                 {renderQuickButtonGroup("Events", eventQuickButtons)}
                 {renderQuickButtonGroup("Issues + Notes", issueQuickButtons)}
@@ -2350,8 +2364,8 @@ function App() {
             <div className="v4-card production-switcher">
               <div className="v4-card-head">
                 <div>
-                  <p className="panel-kicker">Productions</p>
-                  <h2>Rooms</h2>
+                  <p className="panel-kicker">Production Rooms</p>
+                  <h2>Select Production</h2>
                 </div>
                 <select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)}>
                   <option value="date">Date</option>
@@ -2368,7 +2382,10 @@ function App() {
                 {summaries.map((summary) => (
                   <div key={summary.code} className={`production-item-row ${summary.code === activeProduction.code ? "active" : ""}`}>
                     <button className="production-item" onClick={() => setActiveProductionCode(summary.code)}>
-                      <span>{summary.title || "Untitled Production"}</span>
+                      <span>
+                        {summary.title || "Untitled Production"}
+                        {summary.code === activeProduction.code ? <em>Selected</em> : null}
+                      </span>
                       <small>
                         {summary.shortName || summary.code} | {compactDate(summary.sessionDate)} | {summary.noteCount} notes
                       </small>
@@ -2397,13 +2414,20 @@ function App() {
             <div className="v4-card metadata-panel">
               <div className="v4-card-head">
                 <div>
-                  <p className="panel-kicker">Production Crew</p>
-                  <h2>Details</h2>
+                  <p className="panel-kicker">Selected Production</p>
+                  <h2>{activeProduction.title || "Untitled Production"}</h2>
                 </div>
                 <button className="secondary-button" onClick={saveRosterFromProduction}>
                   <Save size={16} />
                   {crewSaveStatus === "saved" ? "Names Saved" : "Save Names"}
                 </button>
+              </div>
+              <div className="selected-production-banner">
+                <CheckCircle2 size={18} />
+                <span>
+                  <strong>Editor Package source</strong>
+                  <small>{activeShortName} · {sessionDateText}</small>
+                </span>
               </div>
               <div className="form-grid v4-form-grid">
                 <label>
@@ -2443,15 +2467,34 @@ function App() {
               </div>
             </div>
 
+          </section>
+        ) : activeTab === "settings" ? (
+          <section className="v4-page app-settings-page" aria-label="App settings dashboard">
             <div className="v4-card quick-button-settings">
               <div className="v4-card-head">
                 <div>
-                  <p className="panel-kicker">Quick Log</p>
-                  <h2>Button Settings</h2>
+                  <p className="panel-kicker">App Settings</p>
+                  <h2>Quick Log Buttons</h2>
                 </div>
                 <Settings size={20} />
               </div>
               {renderQuickButtonEditor()}
+            </div>
+            <div className="v4-card appearance-settings-card">
+              <div className="v4-card-head">
+                <div>
+                  <p className="panel-kicker">Customization</p>
+                  <h2>Appearance</h2>
+                </div>
+                <Palette size={20} />
+              </div>
+              <button className="appearance-settings-button" type="button" onClick={() => setDesignMenuOpen(true)}>
+                <Palette size={20} />
+                <span>
+                  <strong>{activeDesignTheme.label}</strong>
+                  <small>Theme · Font · Color · {modeChoice === "dark" ? "Dark" : "Light"}</small>
+                </span>
+              </button>
             </div>
           </section>
         ) : (
@@ -2459,10 +2502,20 @@ function App() {
             <div className="v4-card export-panel">
               <div className="v4-card-head">
                 <div>
-                  <p className="panel-kicker">Export Menu</p>
-                  <h2>Editor Package</h2>
+                  <p className="panel-kicker">Selected Production</p>
+                  <h2>{activeProduction.title || "Untitled Production"}</h2>
                 </div>
                 <Download size={20} />
+              </div>
+              <div className="selected-production-banner export-selection-banner">
+                <CheckCircle2 size={18} />
+                <span>
+                  <strong>Editor Package</strong>
+                  <small>{activeShortName} · {sessionDateText} · {liveNoteCount} notes</small>
+                </span>
+                <button className="secondary-button" type="button" onClick={() => setActiveTab("details")}>
+                  Change Production
+                </button>
               </div>
               <div className="export-buttons v4-export-buttons">
                 <button onClick={() => void exportPdf(activeProduction, { font: fontChoice })}>
