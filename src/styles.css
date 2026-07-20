@@ -7685,6 +7685,59 @@ html[data-theme][data-mode] .copy-toast {
   pointer-events: none;
 }
 
+html[data-theme][data-mode] .storage-warning {
+  position: sticky;
+  top: max(12px, env(safe-area-inset-top));
+  z-index: 420;
+  width: min(620px, calc(100vw - 24px));
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 42px;
+  gap: 10px;
+  align-items: center;
+  margin: 12px auto 0;
+  padding: 10px 10px 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--danger-fill) 66%, var(--line));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel-strong) 94%, var(--danger-fill));
+  color: var(--readable-text);
+  box-shadow: 0 16px 40px color-mix(in srgb, #000000 38%, transparent);
+}
+
+html[data-theme][data-mode] .storage-warning > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+html[data-theme][data-mode] .storage-warning strong,
+html[data-theme][data-mode] .storage-warning small {
+  color: inherit;
+  line-height: 1.25;
+}
+
+html[data-theme][data-mode] .storage-warning small {
+  color: var(--muted);
+}
+
+html[data-theme][data-mode] .storage-warning button {
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  min-height: 42px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--readable-control-surface);
+  color: var(--readable-text);
+}
+
+html[data-theme][data-mode] .storage-warning button:focus-visible {
+  outline: 3px solid var(--readable-focus);
+  outline-offset: 2px;
+}
+
 html[data-theme][data-mode] .v4-tabs button.active,
 html[data-theme][data-mode] .mobile-panel-switcher button.active,
 html[data-theme][data-mode] .target-status,
