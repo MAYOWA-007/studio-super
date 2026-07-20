@@ -4,6 +4,35 @@ import { nowUtcIso } from "./time";
 const PRODUCTIONS_KEY = "studio-super:productions";
 const ACTIVE_CODE_KEY = "studio-super:active-code";
 const OPERATOR_KEY = "studio-super:operator";
+let localStorageAccessFailed = false;
+
+export function hasLocalStorageFailure() {
+  return localStorageAccessFailed;
+}
+
+export function readLocalStorage(key: string) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    localStorageAccessFailed = true;
+    return null;
+  }
+}
+
+export function writeLocalStorage(key: string, value: string) {
+  if (localStorageAccessFailed) {
+    return false;
+  }
+
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch {
+    localStorageAccessFailed = true;
+    return false;
+  }
+}
+
 const STARTER_CODE = "new-production";
 const defaultRecordingYear = new Date().getFullYear();
 
@@ -134,7 +163,7 @@ export function summarizeProduction(production: Production): ProductionSummary {
 }
 
 export function loadProductions(): Production[] {
-  const raw = localStorage.getItem(PRODUCTIONS_KEY);
+  const raw = readLocalStorage(PRODUCTIONS_KEY);
   if (!raw) {
     return [createStarterProduction()];
   }
@@ -150,23 +179,23 @@ export function loadProductions(): Production[] {
 }
 
 export function saveProductions(productions: Production[]) {
-  localStorage.setItem(PRODUCTIONS_KEY, JSON.stringify(productions));
+  return writeLocalStorage(PRODUCTIONS_KEY, JSON.stringify(productions));
 }
 
 export function loadActiveCode(fallback: string) {
-  return localStorage.getItem(ACTIVE_CODE_KEY) || fallback;
+  return readLocalStorage(ACTIVE_CODE_KEY) || fallback;
 }
 
 export function saveActiveCode(code: string) {
-  localStorage.setItem(ACTIVE_CODE_KEY, code);
+  return writeLocalStorage(ACTIVE_CODE_KEY, code);
 }
 
 export function loadOperatorName() {
-  return localStorage.getItem(OPERATOR_KEY) || "";
+  return readLocalStorage(OPERATOR_KEY) || "";
 }
 
 export function saveOperatorName(name: string) {
-  localStorage.setItem(OPERATOR_KEY, name);
+  return writeLocalStorage(OPERATOR_KEY, name);
 }
 
 export function collectRosterNames(production: Production) {

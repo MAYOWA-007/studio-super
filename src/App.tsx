@@ -39,16 +39,19 @@ import {
   createStarterProduction,
   crewLabels,
   defaultRecordingPath,
+  hasLocalStorageFailure,
   loadActiveCode,
   loadOperatorName,
   loadProductions,
   normalizeCode,
+  readLocalStorage,
   saveActiveCode,
   saveOperatorName,
   saveProductions,
   sanitizeProductions,
   summarizeProduction,
-  uid
+  uid,
+  writeLocalStorage
 } from "./storage";
 import { compactDate, formatZonedDateTime, nowUtcIso } from "./time";
 import type { CrewRole, NoteLog, Production, SortMode, TargetTimer } from "./types";
@@ -250,7 +253,7 @@ function hydrateEventButton(stored: StoredEventButton, index: number): EventButt
 
 function loadQuickButtons() {
   try {
-    const raw = localStorage.getItem(quickButtonsKey);
+    const raw = readLocalStorage(quickButtonsKey);
     if (!raw) {
       return defaultEventButtons;
     }
@@ -288,7 +291,7 @@ function saveQuickButtons(buttons: EventButton[]) {
   const payload: StoredEventButton[] = buttons
     .filter((button) => !retiredQuickButtonIds.has(button.id))
     .map(({ id, label, helper, tone, group }) => ({ id, label, helper, tone, group }));
-  localStorage.setItem(quickButtonsKey, JSON.stringify(payload));
+  return writeLocalStorage(quickButtonsKey, JSON.stringify(payload));
 }
 
 function quickButtonGroup(button: EventButton) {
@@ -296,7 +299,7 @@ function quickButtonGroup(button: EventButton) {
 }
 
 function loadStoredChoice<T extends string>(key: string, choices: readonly { value: T }[], fallback: T): T {
-  const saved = localStorage.getItem(key);
+  const saved = readLocalStorage(key);
   return choices.some((choice) => choice.value === saved) ? (saved as T) : fallback;
 }
 
@@ -734,6 +737,7 @@ function App() {
   const [startupProductionTitle, setStartupProductionTitle] = useState("");
   const [startupExistingCode, setStartupExistingCode] = useState(() => loadActiveCode(starterCode));
   const [copyToast, setCopyToast] = useState("");
+  const [storageWriteFailed, setStorageWriteFailed] = useState(() => hasLocalStorageFailure());
   const [fullScreenClockOpen, setFullScreenClockOpen] = useState(false);
 
   const broadcastRef = useRef<BroadcastChannel | null>(null);
@@ -908,18 +912,27 @@ function App() {
   }, []);
 
   useEffect(() => {
-    saveQuickButtons(quickButtons);
+    if (!saveQuickButtons(quickButtons)) {
+      setStorageWriteFailed(true);
+    }
   }, [quickButtons]);
 
   useEffect(() => {
-    localStorage.setItem(fontChoiceKey, fontChoice);
+    if (!writeLocalStorage(fontChoiceKey, fontChoice)) {
+      setStorageWriteFailed(true);
+    }
     document.documentElement.dataset.font = fontChoice;
   }, [fontChoice]);
 
   useEffect(() => {
-    localStorage.setItem(themeChoiceKey, themeChoice);
-    localStorage.setItem(modeChoiceKey, modeChoice);
-    localStorage.setItem(accentChoiceKey, accentChoice);
+    const saved = [
+      writeLocalStorage(themeChoiceKey, themeChoice),
+      writeLocalStorage(modeChoiceKey, modeChoice),
+      writeLocalStorage(accentChoiceKey, accentChoice)
+    ].every(Boolean);
+    if (!saved) {
+      setStorageWriteFailed(true);
+    }
     document.documentElement.dataset.theme = themeChoice;
     document.documentElement.dataset.mode = modeChoice;
     document.documentElement.dataset.accent = accentChoice;
@@ -967,11 +980,15 @@ function App() {
   }, [activeCodeExists, productions]);
 
   useEffect(() => {
-    saveActiveCode(activeCode);
+    if (!saveActiveCode(activeCode)) {
+      setStorageWriteFailed(true);
+    }
   }, [activeCode]);
 
   useEffect(() => {
-    saveProductions(productions);
+    if (!saveProductions(productions)) {
+      setStorageWriteFailed(true);
+    }
     if (suppressBroadcastRef.current) {
       suppressBroadcastRef.current = false;
       return;
@@ -985,7 +1002,17 @@ function App() {
   }, [productions]);
 
   useEffect(() => {
-    const channel = new BroadcastChannel(broadcastName);
+    if (typeof window.BroadcastChannel !== "function") {
+      return;
+    }
+
+    let channel: BroadcastChannel;
+    try {
+      channel = new window.BroadcastChannel(broadcastName);
+    } catch {
+      return;
+    }
+
     broadcastRef.current = channel;
     channel.addEventListener("message", (event) => {
       const payload = event.data as { type?: string; sourceId?: string; productions?: Production[] };
@@ -1136,7 +1163,9 @@ function App() {
 
     setOperatorName(trimmed);
     setOperatorDraft(trimmed);
-    saveOperatorName(trimmed);
+    if (!saveOperatorName(trimmed)) {
+      setStorageWriteFailed(true);
+    }
   }
 
   function noteTone(eventType: string) {
@@ -1161,7 +1190,9 @@ function App() {
   function setActiveProductionCode(code: string) {
     activeCodeRef.current = code;
     setActiveCode(code);
-    saveActiveCode(code);
+    if (!saveActiveCode(code)) {
+      setStorageWriteFailed(true);
+    }
   }
 
   function markLocalSessionChoice() {
@@ -1873,6 +1904,18 @@ function App() {
       {copyToast ? (
         <div className="copy-toast" role="status" aria-live="polite">
           {copyToast}
+        </div>
+      ) : null}
+      {storageWriteFailed ? (
+        <div className="storage-warning" role="status" aria-label="Browser storage warning" aria-live="assertive">
+          <HardDrive size={20} aria-hidden="true" />
+          <span>
+            <strong>Changes are not being saved</strong>
+            <small>Keep this tab open and export your editor package before closing it.</small>
+          </span>
+          <button type="button" onClick={() => setStorageWriteFailed(false)} aria-label="Dismiss storage warning">
+            <X size={18} />
+          </button>
         </div>
       ) : null}
       {fullScreenClockOpen ? (
