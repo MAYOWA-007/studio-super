@@ -85,6 +85,7 @@ const sourceId = uid("tab");
 const starterCode = "new-production";
 const targetMinuteOptions = [30, 45, 60, 75, 90, 120, 150, 180];
 const pacificTimeZone = "America/Los_Angeles";
+const studioSuperWordmarkSrc = `${import.meta.env.BASE_URL}brand/studio-super-wordmark.png`;
 const quickButtonsKey = "studio-super:quick-buttons:v9";
 const fontChoiceKey = "studio-super:font-choice:v9";
 const themeChoiceKey = "studio-super:theme-choice:v10";
@@ -1897,7 +1898,11 @@ function App() {
       {!operatorName && (
         <div className="operator-gate" role="dialog" aria-modal="true">
           <div className="operator-panel">
-            <p className="eyebrow">Studio Super</p>
+            <img
+              className="studio-super-wordmark studio-super-wordmark-startup"
+              src={studioSuperWordmarkSrc}
+              alt="Studio Super"
+            />
             <h1>{startupMode === "choose" ? "Start Studio Super" : startupMode === "new" ? "New program" : "Open program"}</h1>
             <p>
               {startupMode === "choose"
@@ -1981,10 +1986,11 @@ function App() {
 
       <header className="v4-topbar">
         <div className="v4-brand">
-          <div>
-            <p>{activeShortName}</p>
-            <strong>Studio Super</strong>
-          </div>
+          <img
+            className="studio-super-wordmark studio-super-wordmark-header"
+            src={studioSuperWordmarkSrc}
+            alt="Studio Super"
+          />
         </div>
         <div className="v4-title-block">
           <p className="eyebrow">Production Name</p>
