@@ -88,7 +88,8 @@ const sourceId = uid("tab");
 const starterCode = "new-production";
 const targetMinuteOptions = [30, 45, 60, 75, 90, 120, 150, 180];
 const pacificTimeZone = "America/Los_Angeles";
-const studioSuperWordmarkSrc = `${import.meta.env.BASE_URL}brand/studio-super-wordmark.png`;
+const studioSuperWordmarkDarkSrc = `${import.meta.env.BASE_URL}brand/studio-super-wordmark.png`;
+const studioSuperWordmarkLightSrc = `${import.meta.env.BASE_URL}brand/studio-super-wordmark-light.png`;
 const quickButtonsKey = "studio-super:quick-buttons:v9";
 const fontChoiceKey = "studio-super:font-choice:v9";
 const themeChoiceKey = "studio-super:theme-choice:v10";
@@ -1943,7 +1944,7 @@ function App() {
           <div className="operator-panel">
             <img
               className="studio-super-wordmark studio-super-wordmark-startup"
-              src={studioSuperWordmarkSrc}
+              src={modeChoice === "light" ? studioSuperWordmarkLightSrc : studioSuperWordmarkDarkSrc}
               alt="Studio Super"
             />
             <h1>{startupMode === "choose" ? "Start Studio Super" : startupMode === "new" ? "New program" : "Open program"}</h1>
@@ -2031,7 +2032,7 @@ function App() {
         <div className="v4-brand">
           <img
             className="studio-super-wordmark studio-super-wordmark-header"
-            src={studioSuperWordmarkSrc}
+            src={modeChoice === "light" ? studioSuperWordmarkLightSrc : studioSuperWordmarkDarkSrc}
             alt="Studio Super"
           />
         </div>
