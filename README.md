@@ -10,6 +10,8 @@ Studio Super is an open-source, static session-notes and production-handoff app.
 - Pacific Time clock with a full-screen view, synchronized projected end, start, pause, and reset controls
 - Font options for the interface and PDF export
 - PDF and CSV editor handoff exports
+- Installable PWA shell with a same-origin offline cache
+- Dedicated Firebase Hosting release with strict security headers
 - GitHub Pages friendly static build
 
 ## Privacy
@@ -41,6 +43,22 @@ npm run build
 ```
 
 The production site is generated into `docs/` so GitHub Pages can serve it from the main branch.
+
+The same static build is also published to the isolated Firebase Hosting site at
+`https://knight-studio-super.web.app`. The Firebase release does not add a
+backend, authentication, telemetry, or remote data storage.
+
+## Verification
+
+```powershell
+npm run verify
+npm run verify:firebase
+```
+
+`verify` checks the generated identity, privacy boundary, Firebase isolation,
+offline shell, tests, and production build. `verify:firebase` compares every
+shipped file byte-for-byte with the live Firebase release and confirms that
+source/configuration files are not public.
 
 ## License
 

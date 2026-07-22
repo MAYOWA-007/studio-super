@@ -8,7 +8,10 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build && node scripts/normalize-docs-index.mjs",
     "preview": "vite preview --host 127.0.0.1",
-    "verify:brand": "node scripts/verify-brand.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "verify:brand": "node scripts/verify-brand.mjs",
+    "verify": "npm run verify:brand && npm test && npm run build",
+    "verify:firebase": "node scripts/verify-firebase.mjs"
   },
   "dependencies": {
     "jspdf": "^4.2.1",
