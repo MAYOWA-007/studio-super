@@ -1,4 +1,6 @@
 ﻿import {
+  Accessibility,
+  BellRing,
   CheckCircle2,
   Download,
   Edit3,
@@ -7,6 +9,7 @@
   Flag,
   FolderOpen,
   HardDrive,
+  Keyboard,
   Maximize2,
   MicOff,
   MonitorX,
@@ -14,23 +17,40 @@
   PauseCircle,
   PlayCircle,
   Plus,
+  Presentation,
   Radio,
   RotateCcw,
   Save,
   Search,
   Settings,
   Square,
+  Star,
   Trash2,
   Users,
   Video,
+  Volume2,
+  VolumeX,
   X,
   type LucideIcon
 } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
   exportCsv,
-  exportPdf
+  exportMarkdown,
+  exportPdf,
+  exportProductionBackup,
+  exportWorkspaceBackup
 } from "./exporters";
+import {
+  SESSION_TEMPLATES,
+  computeTimerProgress,
+  createSessionPlan,
+  keyboardControl,
+  midiControl,
+  sessionPlanTotalMinutes,
+  stageAtElapsed,
+  type StudioControl
+} from "./session-control.mjs";
 import {
   collectRosterNames,
   collectSavableRosterNames,
@@ -95,6 +115,10 @@ const fontChoiceKey = "studio-super:font-choice:v9";
 const themeChoiceKey = "studio-super:theme-choice:v10";
 const modeChoiceKey = "studio-super:mode-choice:v10";
 const accentChoiceKey = "studio-super:accent-choice:v10";
+const displayModeKey = "studio-super:display-mode:v1";
+const typeScaleKey = "studio-super:type-scale:v1";
+const motionPreferenceKey = "studio-super:motion-preference:v1";
+const audioCuesKey = "studio-super:audio-cues:v1";
 const retiredQuickButtonIds = new Set(["record-start"]);
 
 const pinnedQuickButtonIds = ["segment-start", "segment-end", "iso-intro", "iso-outro"];
@@ -102,6 +126,27 @@ const pinnedQuickButtonIds = ["segment-start", "segment-end", "iso-intro", "iso-
 type DashboardTab = "log" | "details" | "settings" | "export";
 type StartupMode = "choose" | "new" | "open";
 type MobilePanel = "buttons" | "timeline";
+type DisplayMode = "studio" | "compact" | "presentation";
+type TypeScale = "standard" | "large" | "extra-large";
+type MotionPreference = "system" | "reduced";
+type AudioCueName = "ready" | "stage" | "warning" | "wrap" | "start" | "pause" | "complete" | "record";
+
+const displayModeChoices: readonly { value: DisplayMode; label: string; summary: string }[] = [
+  { value: "studio", label: "Studio", summary: "Full operator workspace" },
+  { value: "compact", label: "Compact", summary: "Dense control surface" },
+  { value: "presentation", label: "Presentation", summary: "Room-scale clock and rundown" }
+];
+
+const typeScaleChoices: readonly { value: TypeScale; label: string }[] = [
+  { value: "standard", label: "Standard" },
+  { value: "large", label: "Large" },
+  { value: "extra-large", label: "Extra Large" }
+];
+
+const motionPreferenceChoices: readonly { value: MotionPreference; label: string }[] = [
+  { value: "system", label: "Follow Device" },
+  { value: "reduced", label: "Reduce Motion" }
+];
 
 const fontChoices = [
   { label: "Modern", value: "modern" },
@@ -320,6 +365,22 @@ function loadAccentChoice(): AccentChoice {
   return loadStoredChoice(accentChoiceKey, accentChoices, "theme");
 }
 
+function loadDisplayMode(): DisplayMode {
+  return loadStoredChoice(displayModeKey, displayModeChoices, "studio");
+}
+
+function loadTypeScale(): TypeScale {
+  return loadStoredChoice(typeScaleKey, typeScaleChoices, "standard");
+}
+
+function loadMotionPreference(): MotionPreference {
+  return loadStoredChoice(motionPreferenceKey, motionPreferenceChoices, "system");
+}
+
+function loadAudioCuesEnabled() {
+  return readLocalStorage(audioCuesKey) !== "false";
+}
+
 function padTimePart(value: number) {
   return String(value).padStart(2, "0");
 }
@@ -458,18 +519,9 @@ function formatDurationLong(ms: number) {
 
 function buildTargetSnapshot(timer: TargetTimer, nowIso: string, timeZone = pacificTimeZone) {
   const nowMs = new Date(nowIso).getTime();
-  const targetMs = timer.targetMinutes * 60 * 1000;
+  const progress = computeTimerProgress(timer, nowMs);
+  const { targetMs, activeMs, pausedMs, remainingMs } = progress;
   const isAutoScheduledStart = timer.scheduledStartMode !== "manual";
-  const runningMs =
-    timer.status === "running" && timer.lastStartedAtUtc
-      ? Math.max(0, nowMs - new Date(timer.lastStartedAtUtc).getTime())
-      : 0;
-  const activeMs = timer.accumulatedMs + runningMs;
-  const pausedMs =
-    timer.status === "paused" && timer.pauseStartedAtUtc
-      ? Math.max(0, nowMs - new Date(timer.pauseStartedAtUtc).getTime())
-      : 0;
-  const remainingMs = targetMs - activeMs;
   const scheduledStart =
     isAutoScheduledStart && !timer.actualStartUtc
       ? new Date(nowMs)
@@ -498,7 +550,7 @@ function buildTargetSnapshot(timer: TargetTimer, nowIso: string, timeZone = paci
     projectedEnd,
     lateMs,
     slipMs,
-    isComplete: activeMs >= targetMs
+    isComplete: progress.isComplete
   };
 }
 
@@ -740,12 +792,29 @@ function App() {
   const [copyToast, setCopyToast] = useState("");
   const [storageWriteFailed, setStorageWriteFailed] = useState(() => hasLocalStorageFailure());
   const [fullScreenClockOpen, setFullScreenClockOpen] = useState(false);
+  const [displayMode, setDisplayMode] = useState<DisplayMode>(() => loadDisplayMode());
+  const [typeScale, setTypeScale] = useState<TypeScale>(() => loadTypeScale());
+  const [motionPreference, setMotionPreference] = useState<MotionPreference>(() => loadMotionPreference());
+  const [audioCuesEnabled, setAudioCuesEnabled] = useState(() => loadAudioCuesEnabled());
+  const [audioStatus, setAudioStatus] = useState("Cues ready after first control press");
+  const [midiStatus, setMidiStatus] = useState("Not connected");
+  const [announcement, setAnnouncement] = useState("");
+  const [recoveryNotice, setRecoveryNotice] = useState(() =>
+    productions.some((production) => production.targetTimer?.status === "running")
+      ? "Running session restored from this device. Timing continues from its saved UTC start."
+      : ""
+  );
 
   const broadcastRef = useRef<BroadcastChannel | null>(null);
   const suppressBroadcastRef = useRef(false);
   const localSessionOverrideRef = useRef(false);
   const designMenuRef = useRef<HTMLDivElement | null>(null);
   const copyToastTimerRef = useRef<number | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const completionHandledRef = useRef("");
+  const activeStageRef = useRef("");
+  const midiAccessRef = useRef<MIDIAccess | null>(null);
+  const studioControlRef = useRef<(command: StudioControl) => void>(() => undefined);
   const activeCodeRef = useRef(activeCode);
   const productionsRef = useRef(productions);
   activeCodeRef.current = activeCode;
@@ -775,6 +844,11 @@ function App() {
   const targetSnapshot = useMemo(
     () => buildTargetSnapshot(targetTimer, nowIso, selectedTimeZone),
     [nowIso, selectedTimeZone, targetTimer]
+  );
+  const sessionPlan = activeProduction?.sessionPlan;
+  const currentStage = useMemo(
+    () => stageAtElapsed(sessionPlan, targetSnapshot.activeMs),
+    [sessionPlan, targetSnapshot.activeMs]
   );
   const scheduledStartInputValue =
     targetTimer.scheduledStartMode !== "manual" && !targetTimer.actualStartUtc && targetTimer.status === "idle"
@@ -940,6 +1014,66 @@ function App() {
   }, [accentChoice, modeChoice, themeChoice]);
 
   useEffect(() => {
+    const saved = [
+      writeLocalStorage(displayModeKey, displayMode),
+      writeLocalStorage(typeScaleKey, typeScale),
+      writeLocalStorage(motionPreferenceKey, motionPreference),
+      writeLocalStorage(audioCuesKey, String(audioCuesEnabled))
+    ].every(Boolean);
+    if (!saved) setStorageWriteFailed(true);
+    document.documentElement.dataset.display = displayMode;
+    document.documentElement.dataset.typeScale = typeScale;
+    document.documentElement.dataset.motion = motionPreference;
+  }, [audioCuesEnabled, displayMode, motionPreference, typeScale]);
+
+  useEffect(() => {
+    function persistCurrentState() {
+      if (!saveProductions(productionsRef.current)) setStorageWriteFailed(true);
+    }
+
+    function recoverAfterInterruption() {
+      if (document.visibilityState !== "visible") return;
+      setNowIso(nowUtcIso());
+      const context = audioContextRef.current;
+      if (audioCuesEnabled && context?.state === "suspended") {
+        void context.resume().then(() => setAudioStatus("Audio cue engine recovered")).catch(() => {
+          setAudioStatus("Press any studio control to restore cues");
+        });
+      }
+      if (productionsRef.current.some((production) => production.targetTimer?.status === "running")) {
+        setRecoveryNotice("Session recovered after an interruption. Absolute UTC timing remained continuous.");
+        setAnnouncement("Session timing recovered and remains continuous.");
+      }
+    }
+
+    window.addEventListener("beforeunload", persistCurrentState);
+    document.addEventListener("visibilitychange", recoverAfterInterruption);
+    window.addEventListener("focus", recoverAfterInterruption);
+    return () => {
+      window.removeEventListener("beforeunload", persistCurrentState);
+      document.removeEventListener("visibilitychange", recoverAfterInterruption);
+      window.removeEventListener("focus", recoverAfterInterruption);
+    };
+  }, [audioCuesEnabled]);
+
+  useEffect(() => {
+    if (!activeProduction || targetTimer.status !== "running" || !targetSnapshot.isComplete) return;
+    const completionKey = `${activeProduction.code}:${targetTimer.actualStartUtc || "running"}`;
+    if (completionHandledRef.current === completionKey) return;
+    completionHandledRef.current = completionKey;
+    completeTargetTimer();
+  }, [activeProduction?.code, targetSnapshot.isComplete, targetTimer.actualStartUtc, targetTimer.status]);
+
+  useEffect(() => {
+    if (!activeProduction || targetTimer.status !== "running" || !currentStage) return;
+    const stageKey = `${activeProduction.code}:${targetTimer.actualStartUtc || "running"}:${currentStage.id}`;
+    if (activeStageRef.current === stageKey) return;
+    activeStageRef.current = stageKey;
+    playAudioCue(currentStage.cue);
+    setAnnouncement(`Session stage ${currentStage.index + 1}: ${currentStage.label}.`);
+  }, [activeProduction?.code, currentStage?.id, targetTimer.actualStartUtc, targetTimer.status]);
+
+  useEffect(() => {
     if (!designMenuOpen) {
       return;
     }
@@ -966,6 +1100,10 @@ function App() {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [designMenuOpen]);
+
+  useEffect(() => {
+    studioControlRef.current = runStudioControl;
+  });
 
   useEffect(() => {
     setProductions((current) => {
@@ -1149,6 +1287,26 @@ function App() {
         : "Ready";
 
   useEffect(() => {
+    function handleStudioShortcut(event: KeyboardEvent) {
+      const target = event.target;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) return;
+      if (!operatorName || event.repeat) return;
+      const command = keyboardControl(event.key, event);
+      if (!command) return;
+      event.preventDefault();
+      runStudioControl(command);
+    }
+
+    document.addEventListener("keydown", handleStudioShortcut);
+    return () => document.removeEventListener("keydown", handleStudioShortcut);
+  }, [activeProduction?.code, displayMode, operatorName, quickButtons, recordControlState, targetTimer.status]);
+
+  useEffect(() => {
     if (summaries.some((summary) => summary.code === startupExistingCode)) {
       return;
     }
@@ -1219,6 +1377,177 @@ function App() {
     );
   }
 
+  function playAudioCue(cue: AudioCueName, allowCreate = false, forceEnabled = false) {
+    if (!audioCuesEnabled && !forceEnabled) return;
+    const AudioContextConstructor = window.AudioContext;
+    if (!AudioContextConstructor) {
+      setAudioStatus("Audio cues are unavailable in this browser");
+      return;
+    }
+
+    try {
+      if (!audioContextRef.current && !allowCreate) {
+        setAudioStatus("Press any studio control to activate cues");
+        return;
+      }
+      const context = audioContextRef.current || new AudioContextConstructor();
+      audioContextRef.current = context;
+      if (context.state === "suspended") void context.resume();
+      const patterns: Record<AudioCueName, number[]> = {
+        ready: [440, 660],
+        stage: [660, 880],
+        warning: [740, 520],
+        wrap: [880, 660, 440],
+        start: [520, 780],
+        pause: [620, 420],
+        complete: [660, 880, 1100],
+        record: [880]
+      };
+      const startAt = context.currentTime + 0.01;
+      patterns[cue].forEach((frequency, index) => {
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        const cueStart = startAt + index * 0.13;
+        oscillator.type = cue === "warning" ? "square" : "sine";
+        oscillator.frequency.setValueAtTime(frequency, cueStart);
+        gain.gain.setValueAtTime(0.0001, cueStart);
+        gain.gain.exponentialRampToValueAtTime(0.1, cueStart + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, cueStart + 0.1);
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.start(cueStart);
+        oscillator.stop(cueStart + 0.11);
+      });
+      setAudioStatus("Audio cues active");
+    } catch {
+      setAudioStatus("Press any studio control to restore cues");
+    }
+  }
+
+  function cycleDisplayMode() {
+    const order: DisplayMode[] = ["studio", "compact", "presentation"];
+    const next = order[(order.indexOf(displayMode) + 1) % order.length];
+    setDisplayMode(next);
+    setAnnouncement(`${displayModeChoices.find((choice) => choice.value === next)?.label} display enabled.`);
+  }
+
+  function runStudioControl(command: StudioControl) {
+    if (command.type === "toggle-timer") {
+      if (targetTimer.status === "running") pauseTargetTimer();
+      else startOrResumeTargetTimer();
+      return;
+    }
+    if (command.type === "toggle-record") {
+      toggleRecord();
+      return;
+    }
+    if (command.type === "fullscreen-clock") {
+      setFullScreenClockOpen(true);
+      return;
+    }
+    if (command.type === "cycle-display") {
+      cycleDisplayMode();
+      return;
+    }
+    if (command.type === "log-event") {
+      logEvent(command.label);
+      setAnnouncement(`${command.label} logged.`);
+      return;
+    }
+    const button = quickButtons[command.index];
+    if (button) {
+      logEvent(button.label);
+      setAnnouncement(`${button.label} logged.`);
+    }
+  }
+
+  async function enableMidiControl() {
+    if (!navigator.requestMIDIAccess) {
+      setMidiStatus("Web MIDI is not available in this browser");
+      return;
+    }
+
+    try {
+      const access = await navigator.requestMIDIAccess();
+      midiAccessRef.current = access;
+      const bindInputs = () => {
+        const inputs = Array.from(access.inputs.values());
+        inputs.forEach((input) => {
+          input.onmidimessage = (event) => {
+            const command = event.data ? midiControl(event.data) : null;
+            if (command) studioControlRef.current(command);
+          };
+        });
+        setMidiStatus(inputs.length ? `${inputs.length} MIDI input${inputs.length === 1 ? "" : "s"} connected` : "Waiting for a MIDI input");
+      };
+      bindInputs();
+      access.onstatechange = bindInputs;
+    } catch {
+      setMidiStatus("MIDI permission was not granted");
+    }
+  }
+
+  function applySessionTemplate(templateId: string) {
+    const template = SESSION_TEMPLATES.find((candidate) => candidate.id === templateId);
+    if (!template) return;
+    const plan = createSessionPlan(template.id);
+    const targetMinutes = sessionPlanTotalMinutes(plan);
+    const utcIso = nowUtcIso();
+    updateActiveProduction((production) => {
+      const note = timerNote(
+        "Session Template",
+        `${template.label} applied: ${plan.stages.map((stage) => `${stage.label} ${stage.durationMinutes}m`).join(", ")}`,
+        utcIso
+      );
+      const noteLogs = [note, ...production.noteLogs];
+      return {
+        ...production,
+        sessionPlan: plan,
+        targetTimer: {
+          ...createDefaultTargetTimer(),
+          targetMinutes,
+          scheduledStartTime: dateToTimeInput(new Date(utcIso), selectedTimeZone)
+        },
+        noteLogs,
+        rosterNames: collectRosterNames({ ...production, noteLogs })
+      };
+    });
+    completionHandledRef.current = "";
+    activeStageRef.current = "";
+    playAudioCue("ready", true);
+    setAnnouncement(`${template.label} template applied with ${plan.stages.length} stages.`);
+  }
+
+  function completeTargetTimer() {
+    if (!activeProduction || targetTimer.status !== "running") return;
+    const utcIso = nowUtcIso();
+    updateActiveProduction((production) => {
+      const timer = production.targetTimer || createDefaultTargetTimer();
+      const progress = computeTimerProgress(timer, utcIso);
+      const note = timerNote(
+        "Target Duration Complete",
+        `Target duration reached at ${formatDuration(progress.activeMs)} active time`,
+        utcIso
+      );
+      const noteLogs = [note, ...production.noteLogs];
+      return {
+        ...production,
+        targetTimer: {
+          ...timer,
+          status: "complete",
+          accumulatedMs: progress.activeMs,
+          lastStartedAtUtc: undefined,
+          pauseStartedAtUtc: undefined,
+          completedAtUtc: utcIso
+        },
+        noteLogs,
+        rosterNames: collectRosterNames({ ...production, noteLogs })
+      };
+    });
+    playAudioCue("complete");
+    setAnnouncement("Target duration complete.");
+  }
+
   function timerNote(eventType: string, text: string, utcIso: string): NoteLog {
     const noteOperator = operatorName || "Target Clock";
     return {
@@ -1259,6 +1588,7 @@ function App() {
   function setTargetMinutes(minutes: number) {
     updateActiveProduction((production) => ({
       ...production,
+      sessionPlan: undefined,
       targetTimer: {
         ...(production.targetTimer || createDefaultTargetTimer()),
         targetMinutes: minutes
@@ -1271,6 +1601,7 @@ function App() {
       const timer = production.targetTimer || createDefaultTargetTimer();
       return {
         ...production,
+        sessionPlan: undefined,
         targetTimer: {
           ...timer,
           targetMinutes: Math.max(1, timer.targetMinutes + minutes)
@@ -1338,6 +1669,10 @@ function App() {
         text: `Target duration started: ${timer.targetMinutes} minute target`
       };
     });
+    completionHandledRef.current = "";
+    activeStageRef.current = "";
+    playAudioCue("start", true);
+    setAnnouncement(targetTimer.status === "paused" ? "Target timer resumed." : "Target timer started.");
   }
 
   function pauseTargetTimer() {
@@ -1356,6 +1691,8 @@ function App() {
         text: `Target duration paused at ${formatDuration(snapshot.activeMs)} active, ${formatRemaining(snapshot.remainingMs)} remaining`
       };
     });
+    playAudioCue("pause", true);
+    setAnnouncement("Target timer paused.");
   }
 
   function resetTargetTimer() {
@@ -1374,6 +1711,9 @@ function App() {
       eventType: "Target Duration Reset",
       text: "Target duration reset"
     }));
+    completionHandledRef.current = "";
+    activeStageRef.current = "";
+    setAnnouncement("Target timer reset.");
   }
 
   function isBlankStarterProduction(production: Production) {
@@ -1604,10 +1944,14 @@ function App() {
   function toggleRecord() {
     if (recordControlState === "recording") {
       recordStop();
+      playAudioCue("record", true);
+      setAnnouncement("Record stopped.");
       return;
     }
 
     logEvent("Record Start");
+    playAudioCue("record", true);
+    setAnnouncement("Record started.");
   }
 
   function renameQuickButton(id: string, label: string) {
@@ -1809,6 +2153,32 @@ function App() {
     }));
   }
 
+  function setNoteRating(noteId: string, rating: 1 | 2 | 3 | 4 | 5) {
+    updateActiveProduction((production) => ({
+      ...production,
+      noteLogs: production.noteLogs.map((note) => {
+        if (note.id !== noteId || note.rating === rating) return note;
+        const utcIso = nowUtcIso();
+        return {
+          ...note,
+          rating,
+          history: [
+            ...note.history,
+            {
+              id: uid("hist"),
+              action: "rate" as const,
+              operatorName: operatorName || "Unknown Operator",
+              utcIso,
+              previousText: note.rating ? `${note.rating}/5` : "Unrated",
+              nextText: `${rating}/5`
+            }
+          ]
+        };
+      })
+    }));
+    setAnnouncement(`Note rated ${rating} out of 5.`);
+  }
+
   function renderQuickButtonGroup(title: string, buttons: EventButton[]) {
     if (buttons.length === 0) {
       return null;
@@ -1901,7 +2271,10 @@ function App() {
   const sessionIndicatorTitle = `${sessionIndicatorLabel}. ${recordControlCaption}.`;
 
   return (
-    <div className="app-shell v4-shell">
+    <div className={`app-shell v4-shell display-${displayMode}`}>
+      <div className="sr-only" role="status" aria-live="assertive" aria-atomic="true">
+        {announcement}
+      </div>
       {copyToast ? (
         <div className="copy-toast" role="status" aria-live="polite">
           {copyToast}
@@ -1916,6 +2289,15 @@ function App() {
           </span>
           <button type="button" onClick={() => setStorageWriteFailed(false)} aria-label="Dismiss storage warning">
             <X size={18} />
+          </button>
+        </div>
+      ) : null}
+      {recoveryNotice ? (
+        <div className="recovery-notice" role="status" aria-live="polite">
+          <CheckCircle2 size={18} aria-hidden="true" />
+          <span>{recoveryNotice}</span>
+          <button type="button" onClick={() => setRecoveryNotice("")} aria-label="Dismiss recovery message">
+            <X size={16} />
           </button>
         </div>
       ) : null}
@@ -1936,6 +2318,13 @@ function App() {
             <div className="full-screen-clock-divider" />
             <span>Projected End</span>
             <CopyableValue value={projectedEndText} label="projected end" className="full-screen-projected-time" />
+            {currentStage ? (
+              <div className="full-screen-stage" aria-live="polite">
+                <small>Stage {currentStage.index + 1}</small>
+                <strong>{currentStage.label}</strong>
+                <span>{formatRemaining(currentStage.remainingMs)} remaining</span>
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -2234,6 +2623,43 @@ function App() {
                 </button>
               </div>
 
+              <div className="studio-control-strip" aria-label="Studio display and cue controls">
+                <div className="display-mode-controls" role="group" aria-label="Display mode">
+                  {displayModeChoices.map((choice) => (
+                    <button
+                      key={choice.value}
+                      type="button"
+                      className={displayMode === choice.value ? "active" : ""}
+                      onClick={() => {
+                        setDisplayMode(choice.value);
+                        setAnnouncement(`${choice.label} display enabled.`);
+                      }}
+                      aria-pressed={displayMode === choice.value}
+                      title={choice.summary}
+                    >
+                      {choice.value === "presentation" ? <Presentation size={15} /> : null}
+                      {choice.label}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className={`audio-cue-toggle ${audioCuesEnabled ? "active" : ""}`}
+                  onClick={() => {
+                    const next = !audioCuesEnabled;
+                    setAudioCuesEnabled(next);
+                    setAudioStatus(next ? "Cues ready after first control press" : "Audio cues muted");
+                    setAnnouncement(next ? "Audio cues enabled." : "Audio cues muted.");
+                    if (next) playAudioCue("ready", true, true);
+                  }}
+                  aria-pressed={audioCuesEnabled}
+                  title={audioStatus}
+                >
+                  {audioCuesEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                  {audioCuesEnabled ? "Cues On" : "Cues Off"}
+                </button>
+              </div>
+
               <div className="v4-clock-strip">
                 <div className="v4-projected-end">
                   <span>Projected End</span>
@@ -2242,6 +2668,37 @@ function App() {
                   </strong>
                 </div>
                 <span className="clock-zone-label">Pacific Time</span>
+              </div>
+
+              <div className="session-template-panel">
+                <label>
+                  Session Plan
+                  <select
+                    value={sessionPlan?.templateId || ""}
+                    onChange={(event) => applySessionTemplate(event.target.value)}
+                    disabled={targetTimer.status === "running"}
+                  >
+                    <option value="">Custom duration</option>
+                    {SESSION_TEMPLATES.map((template) => (
+                      <option key={template.id} value={template.id}>
+                        {template.label} · {sessionPlanTotalMinutes(template)} min
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {sessionPlan ? (
+                  <ol className="session-stage-list" aria-label="Session stages">
+                    {sessionPlan.stages.map((stage, index) => (
+                      <li key={stage.id} className={currentStage?.id === stage.id ? "active" : ""}>
+                        <span>{index + 1}</span>
+                        <strong>{stage.label}</strong>
+                        <small>{stage.durationMinutes}m</small>
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p className="session-template-hint">Choose an exact rundown or keep a custom target.</p>
+                )}
               </div>
 
               <div className="target-controls v4-target-controls">
@@ -2266,6 +2723,15 @@ function App() {
                   </button>
                   <button className="target-reset" onClick={resetTargetTimer} title="Reset target duration">
                     <RotateCcw size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    className="accessible-switch-control"
+                    onClick={() => runStudioControl({ type: "toggle-timer" })}
+                    aria-label={`${targetTimer.status === "running" ? "Pause" : "Start or resume"} target timer switch control`}
+                    title="Large accessible switch control; keyboard Space performs the same action"
+                  >
+                    Switch
                   </button>
                 </div>
               </div>
@@ -2395,8 +2861,36 @@ function App() {
                           }}
                           rows={2}
                         />
+                        <div className="note-rating" role="radiogroup" aria-label={`Rating for ${note.eventType}`}>
+                          <span>Take rating</span>
+                          {[1, 2, 3, 4, 5].map((rating) => (
+                            <button
+                              key={rating}
+                              type="button"
+                              className={(note.rating || 0) >= rating ? "active" : ""}
+                              onClick={() => setNoteRating(note.id, rating as 1 | 2 | 3 | 4 | 5)}
+                              role="radio"
+                              aria-checked={note.rating === rating}
+                              aria-label={`${rating} out of 5`}
+                              title={`${rating} out of 5`}
+                            >
+                              <Star size={15} fill={(note.rating || 0) >= rating ? "currentColor" : "none"} />
+                            </button>
+                          ))}
+                        </div>
                         <div className="note-actions">
                           <span>{note.operatorName}</span>
+                          <details>
+                            <summary>History ({note.history.length})</summary>
+                            <ul>
+                              {[...note.history].reverse().map((entry) => (
+                                <li key={entry.id}>
+                                  <strong>{entry.action}</strong> · {entry.operatorName} · {formatZonedDateTime(entry.utcIso, selectedTimeZone)}
+                                  {entry.nextText ? <small>{entry.nextText}</small> : null}
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
                           <button onClick={() => setNoteDeleted(note.id, !note.deletedAtUtc)}>
                             {note.deletedAtUtc ? <RotateCcw size={14} /> : <Trash2 size={14} />}
                             {note.deletedAtUtc ? "Restore" : "Delete"}
@@ -2546,6 +3040,78 @@ function App() {
                 </span>
               </button>
             </div>
+            <div className="v4-card accessibility-settings-card">
+              <div className="v4-card-head">
+                <div>
+                  <p className="panel-kicker">Inclusive Operation</p>
+                  <h2>Accessibility + Display</h2>
+                </div>
+                <Accessibility size={20} />
+              </div>
+              <div className="settings-control-grid">
+                <label>
+                  Text Size
+                  <select value={typeScale} onChange={(event) => setTypeScale(event.target.value as TypeScale)}>
+                    {typeScaleChoices.map((choice) => (
+                      <option key={choice.value} value={choice.value}>{choice.label}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Motion
+                  <select
+                    value={motionPreference}
+                    onChange={(event) => setMotionPreference(event.target.value as MotionPreference)}
+                  >
+                    {motionPreferenceChoices.map((choice) => (
+                      <option key={choice.value} value={choice.value}>{choice.label}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="display-settings-grid" role="group" aria-label="Display mode">
+                {displayModeChoices.map((choice) => (
+                  <button
+                    key={choice.value}
+                    type="button"
+                    className={displayMode === choice.value ? "active" : ""}
+                    onClick={() => setDisplayMode(choice.value)}
+                    aria-pressed={displayMode === choice.value}
+                  >
+                    <strong>{choice.label}</strong>
+                    <small>{choice.summary}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="v4-card control-surface-card">
+              <div className="v4-card-head">
+                <div>
+                  <p className="panel-kicker">Hands-Free Operation</p>
+                  <h2>Keyboard, MIDI + Switch</h2>
+                </div>
+                <Keyboard size={20} />
+              </div>
+              <div className="control-surface-actions">
+                <button type="button" className="secondary-button" onClick={() => void enableMidiControl()}>
+                  <BellRing size={16} />
+                  Enable MIDI
+                </button>
+                <span role="status">{midiStatus}</span>
+              </div>
+              <dl className="shortcut-list">
+                <div><dt><kbd>Space</kbd></dt><dd>Start / pause target</dd></div>
+                <div><dt><kbd>R</kbd></dt><dd>Start / stop record</dd></div>
+                <div><dt><kbd>1–9</kbd></dt><dd>Quick-log buttons</dd></div>
+                <div><dt><kbd>M</kbd></dt><dd>Marker</dd></div>
+                <div><dt><kbd>F</kbd></dt><dd>Full-screen clock</dd></div>
+                <div><dt><kbd>D</kbd></dt><dd>Cycle display</dd></div>
+              </dl>
+              <p className="settings-footnote">
+                MIDI notes 36–42 map to record, segments, takes, issues, timer, and marker. The large Switch control
+                beside the timer supports touch, keyboard, and adaptive switches that emit Enter or Space.
+              </p>
+            </div>
           </section>
         ) : (
           <section className="v4-page v9-export-page" aria-label="Export dashboard">
@@ -2575,6 +3141,18 @@ function App() {
                 <button onClick={() => exportCsv(activeProduction)}>
                   <FileSpreadsheet size={16} />
                   CSV
+                </button>
+                <button onClick={() => exportMarkdown(activeProduction)}>
+                  <FileText size={16} />
+                  Markdown
+                </button>
+                <button onClick={() => exportProductionBackup(activeProduction)}>
+                  <HardDrive size={16} />
+                  Production JSON
+                </button>
+                <button onClick={() => exportWorkspaceBackup(productions)}>
+                  <HardDrive size={16} />
+                  Workspace Backup
                 </button>
               </div>
               <div className="local-storage-note export-storage-note">

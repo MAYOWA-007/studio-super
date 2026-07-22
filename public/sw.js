@@ -1,4 +1,4 @@
-const CACHE_NAME = "studio-super-shell-20260722";
+const CACHE_NAME = "studio-super-shell-20260722-growth1";
 const CORE_ASSETS = [
   "./",
   "./manifest.webmanifest",

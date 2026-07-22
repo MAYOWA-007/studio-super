@@ -8,8 +8,12 @@ Studio Super is an open-source, static session-notes and production-handoff app.
 - Live session logging with editable quick event and issue buttons
 - Production details, crew fields, recording path, and editor handoff notes
 - Pacific Time clock with a full-screen view, synchronized projected end, start, pause, and reset controls
+- Exact multi-stage 30, 45, 60, and 90 minute session templates with live rundown progress
+- Drift-free UTC timing, crash/interruption restore, stage cues, and background-audio recovery
+- Studio, compact, room-scale presentation, dynamic-type, and reduced-motion display modes
+- Take ratings, per-note audit history, keyboard shortcuts, Web MIDI mapping, and adaptive-switch control
 - Font options for the interface and PDF export
-- PDF and CSV editor handoff exports
+- PDF, CSV, Markdown, production JSON, and full-workspace JSON exports
 - Installable PWA shell with a same-origin offline cache
 - Dedicated Firebase Hosting release with strict security headers
 - GitHub Pages friendly static build
@@ -24,8 +28,9 @@ The app stores working data in this site's browser storage on the current device
 - saved operator/crew names and roster suggestions
 - customized quick-log buttons
 - theme, font, color, and dark/light mode choices
+- display, type-size, motion, cue, timer, template, rating, and note-history state
 
-That browser storage is scoped to this site on that specific browser/device. Other users and other devices cannot reach it through Studio Super. Clearing site data or browser storage removes it from that device. PDF and CSV exports are the only files the app creates for sharing.
+That browser storage is scoped to this site on that specific browser/device. Other users and other devices cannot reach it through Studio Super. Clearing site data or browser storage removes it from that device. Explicit PDF, CSV, Markdown, and JSON exports are the only files the app creates for sharing.
 
 Studio Super uses `BroadcastChannel` only to keep multiple open tabs on the same browser in sync. It does not send data across devices or to a server.
 

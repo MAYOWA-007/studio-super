@@ -8,7 +8,7 @@ export type CrewRole =
 
 export type Crew = Record<CrewRole, string>;
 
-export type NoteAction = "create" | "edit" | "delete" | "restore";
+export type NoteAction = "create" | "edit" | "delete" | "restore" | "rate";
 
 export interface NoteHistoryEntry {
   id: string;
@@ -26,7 +26,20 @@ export interface NoteLog {
   operatorName: string;
   utcIso: string;
   deletedAtUtc?: string;
+  rating?: 1 | 2 | 3 | 4 | 5;
   history: NoteHistoryEntry[];
+}
+
+export interface SessionStage {
+  id: string;
+  label: string;
+  durationMinutes: number;
+  cue: "ready" | "stage" | "warning" | "wrap";
+}
+
+export interface SessionPlan {
+  templateId: string;
+  stages: SessionStage[];
 }
 
 export type TargetTimerStatus = "idle" | "running" | "paused" | "complete";
@@ -59,6 +72,7 @@ export interface Production {
   rosterNames: string[];
   noteLogs: NoteLog[];
   targetTimer: TargetTimer;
+  sessionPlan?: SessionPlan;
   createdAtUtc: string;
   updatedAtUtc: string;
 }

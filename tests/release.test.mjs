@@ -44,3 +44,17 @@ test("runtime source preserves the browser-only privacy contract", async () => {
   assert.match(source, /localStorage/);
   assert.match(source, /BroadcastChannel/);
 });
+
+test("growth controls remain functional and locally persisted", async () => {
+  const source = await readText("src/App.tsx");
+  const controls = await readText("src/session-control.mjs");
+  const styles = await readText("src/styles-v21-growth.css");
+  assert.match(source, /SESSION_TEMPLATES/);
+  assert.match(source, /requestMIDIAccess/);
+  assert.match(source, /exportWorkspaceBackup/);
+  assert.match(source, /visibilitychange/);
+  assert.match(controls, /computeTimerProgress/);
+  assert.match(styles, /prefers-reduced-motion/);
+  assert.match(styles, /forced-colors/);
+  assert.doesNotMatch([source, controls].join("\n"), /https?:\/\/|fetch\s*\(/i);
+});
