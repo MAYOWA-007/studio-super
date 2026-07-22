@@ -1,0 +1,69 @@
+{
+  "product": "Studio Super",
+  "verifiedAt": "2026-07-22T15:12:44Z",
+  "source": {
+    "branch": "codex/firebase-final-20260722",
+    "functionalCommit": "f9417639f2a5b15ab842b09385e4e1e697a945cb",
+    "generatedIdentityCommit": "9d4c171"
+  },
+  "firebase": {
+    "projectId": "knight-ai-av-site",
+    "siteId": "knight-studio-super",
+    "defaultUrl": "https://knight-studio-super.web.app",
+    "canonicalUrl": "https://studiosuper.knightaiav.com",
+    "deployment": "Firebase CLI 15.24.0 release complete"
+  },
+  "liveStaticParity": {
+    "originsVerified": [
+      "https://knight-studio-super.web.app",
+      "https://studiosuper.knightaiav.com"
+    ],
+    "verifiedFilesPerOrigin": 18,
+    "verifiedBytesPerOrigin": 1833893,
+    "forbiddenPathsReturning404PerOrigin": 4,
+    "indexSha256": "694c9700a435f5ffa69c6562016ec28ce918d134c74b0e8b1dbce931c3b66626",
+    "serviceWorkerSha256": "8fda5db2cfae791c1c018c444aeaca579d0203c3f49455674fb1d889d7649466"
+  },
+  "automatedGates": {
+    "generatedBrand": "6 protected generation/master files and 9 shipping assets",
+    "behaviorAndReleaseTests": "13/13",
+    "typecheck": "pass",
+    "productionBuild": "pass",
+    "diffCheck": "pass"
+  },
+  "browserAcceptance": {
+    "exactSessionTemplates": "30/45/60/90 minute plans verified",
+    "timerStartPauseKeyboard": "pass",
+    "noteRatingAndHistory": "pass",
+    "crashRestore": "pass; running UTC timer continued after reload",
+    "displayModes": "Studio/Compact/Presentation pass; Presentation exit verified by click",
+    "mobile390px": "pass; document width equals viewport width in Studio and Presentation",
+    "serviceWorkerControlled": true,
+    "networkBoundary": "all observed resources same-origin",
+    "consoleErrors": 0,
+    "consoleWarnings": 0
+  },
+  "growthBacklog": {
+    "STS-01": "complete",
+    "STS-02": "complete",
+    "STS-03": "complete",
+    "STS-04": "complete",
+    "STS-05": "complete",
+    "STS-06": "complete",
+    "STS-07": "complete",
+    "STS-08": "complete",
+    "STS-09": "complete",
+    "STS-10": "complete"
+  },
+  "privacyBoundary": {
+    "applicationBackend": false,
+    "authentication": false,
+    "database": false,
+    "telemetry": false,
+    "remoteSync": false,
+    "supabase": false,
+    "vercel": false,
+    "storage": "browser localStorage with same-browser BroadcastChannel synchronization",
+    "hostingOnly": "Firebase Hosting"
+  }
+}

@@ -1,4 +1,4 @@
-import type { Crew, Production, ProductionSummary, TargetTimer } from "./types";
+import type { Crew, Production, ProductionSummary, SessionPlan, TargetTimer } from "./types";
 import { nowUtcIso } from "./time";
 
 const PRODUCTIONS_KEY = "studio-super:productions";
@@ -131,9 +131,31 @@ export function createStarterProduction(): Production {
 }
 
 function sanitizeProduction(production: Production): Production {
+  const sessionPlan: SessionPlan | undefined =
+    production.sessionPlan && Array.isArray(production.sessionPlan.stages)
+      ? {
+          templateId: String(production.sessionPlan.templateId || "custom"),
+          stages: production.sessionPlan.stages
+            .filter((stage) => stage && Number(stage.durationMinutes) > 0)
+            .map((stage) => ({
+              id: String(stage.id || "stage"),
+              label: String(stage.label || "Stage"),
+              durationMinutes: Number(stage.durationMinutes),
+              cue: ["ready", "stage", "warning", "wrap"].includes(stage.cue) ? stage.cue : "stage"
+            }))
+        }
+      : undefined;
   const productionWithDefaults = {
     ...production,
-    targetTimer: production.targetTimer || createDefaultTargetTimer()
+    targetTimer: production.targetTimer || createDefaultTargetTimer(),
+    sessionPlan: sessionPlan?.stages.length ? sessionPlan : undefined,
+    noteLogs: Array.isArray(production.noteLogs)
+      ? production.noteLogs.map((note) => ({
+          ...note,
+          rating: [1, 2, 3, 4, 5].includes(Number(note.rating)) ? (Number(note.rating) as 1 | 2 | 3 | 4 | 5) : undefined,
+          history: Array.isArray(note.history) ? note.history : []
+        }))
+      : []
   };
   const isStarterBlank =
     productionWithDefaults.code === STARTER_CODE &&
