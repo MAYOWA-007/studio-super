@@ -1,0 +1,57 @@
+{
+  "product": "Studio Super",
+  "verifiedAt": "2026-07-22T14:36:00Z",
+  "source": {
+    "branch": "codex/firebase-final-20260722",
+    "commit": "d57193d15ea160a0db2e2d175929521a76c2caff",
+    "generatedIdentityCommit": "9d4c171"
+  },
+  "firebase": {
+    "projectId": "knight-ai-av-site",
+    "siteId": "knight-studio-super",
+    "version": "96a673dd17326c0e",
+    "defaultUrl": "https://knight-studio-super.web.app",
+    "canonicalUrl": "https://studiosuper.knightaiav.com",
+    "customDomain": {
+      "hostState": "HOST_ACTIVE",
+      "ownershipState": "OWNERSHIP_ACTIVE",
+      "controlPlaneCertificateState": "CERT_PROPAGATING",
+      "httpsValidated": true
+    }
+  },
+  "liveStaticParity": {
+    "verifiedFiles": 18,
+    "verifiedBytes": 1805685,
+    "forbiddenPathsReturning404": 4,
+    "securityHeaders": true
+  },
+  "automatedGates": {
+    "generatedBrand": "6 protected generation/master files and 9 shipping assets",
+    "releaseTests": "4/4",
+    "typecheck": "pass",
+    "productionBuild": "pass",
+    "diffCheck": "pass"
+  },
+  "browserAcceptance": {
+    "newProductionFlow": "pass",
+    "operatorAndProductionPersistence": "pass",
+    "recordStart": "pass",
+    "segmentAndIssueLogging": "3 notes verified",
+    "exportView": "pass",
+    "mobile390px": "pass; document width equals viewport width",
+    "serviceWorkerControlled": true,
+    "offlineReload": "pass",
+    "consoleErrors": 0
+  },
+  "privacyBoundary": {
+    "applicationBackend": false,
+    "authentication": false,
+    "database": false,
+    "telemetry": false,
+    "remoteSync": false,
+    "supabase": false,
+    "vercel": false,
+    "storage": "browser localStorage with same-browser BroadcastChannel synchronization",
+    "hostingOnly": "Firebase Hosting"
+  }
+}
